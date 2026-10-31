@@ -1,0 +1,27 @@
+{
+  "backend": {
+    "wordpress": "7.1.4",
+    "private_excluded": true,
+    "protected_detail_status": 404,
+    "anonymous_write_status": 401,
+    "repeat_import": 0,
+    "default_local_login": true
+  },
+  "standalone_react": true,
+  "php_theme_used_by_frontend": false,
+  "react_dom": {
+    "hydration": true,
+    "real_api_refresh": true,
+    "filtering": true,
+    "case_navigation": true,
+    "metadata": true,
+    "not_found": true,
+    "error_and_retry": true,
+    "requests": 3
+  },
+  "persistent_cms": true,
+  "prerendered_routes": 6,
+  "bootstrap_script_escaping": true,
+  "public_content_sanitization": true,
+  "browser_visual_qa": "Not verified: the local browser connection was unavailable. React interaction checks ran in a simulated DOM."
+}

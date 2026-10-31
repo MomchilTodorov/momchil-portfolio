@@ -1,0 +1,50 @@
+[
+  {
+    "slug": "ligre",
+    "title": "LIGRE Coffee Equipment",
+    "category": "WOOCOMMERCE / B2B / AFFILIATE WORKFLOWS",
+    "categories": ["woocommerce", "integrations"],
+    "summary": "Connecting partner orders with affiliate commissions and B2B workflows.",
+    "context": "This work connected partner ordering, affiliate commissions and B2B operations within a WooCommerce implementation.",
+    "contributions": ["Built workflows for partner orders.", "Integrated Affiliate for WooCommerce with multi-level commission functionality.", "Developed REST endpoints to support the connected B2B operations."],
+    "outcome": "Delivered connected partner-order and affiliate workflows within the project’s WooCommerce setup.",
+    "stack": ["WordPress", "WooCommerce", "PHP", "REST APIs", "Affiliate for WooCommerce"],
+    "url": "https://ligre.com/"
+  },
+  {
+    "slug": "walhalla",
+    "title": "Walhalla Weine",
+    "category": "ERP INTEGRATION / AUTOMATION",
+    "categories": ["woocommerce", "integrations"],
+    "summary": "Keeping a WooCommerce catalog connected to the VinX ERP system.",
+    "context": "The integration brought product, inventory, pricing, image and attribute data from VinX ERP into WooCommerce.",
+    "contributions": ["Integrated WooCommerce with the VinX ERP system.", "Built scheduled imports and synchronization logic using REST APIs.", "Automated updates for products, stock, pricing, images and attributes."],
+    "outcome": "Delivered automated catalog updates between the ERP system and the WooCommerce store.",
+    "stack": ["WordPress", "WooCommerce", "VinX ERP", "REST APIs", "Scheduled imports"],
+    "url": "https://www.walhalla-weine.ch/"
+  },
+  {
+    "slug": "elfbar",
+    "title": "Elfbar.de",
+    "category": "CUSTOM FEATURES / PERFORMANCE",
+    "categories": ["woocommerce", "integrations"],
+    "summary": "Product configuration and tailored business logic for an online store.",
+    "context": "My contribution focused on tailored WooCommerce functionality and the technical behavior behind the store.",
+    "contributions": ["Built a product configurator.", "Implemented third-party integrations and tailored WooCommerce business logic.", "Contributed performance improvements to the project."],
+    "outcome": "Delivered product configuration and custom store functionality adapted to the project’s requirements.",
+    "stack": ["WordPress", "WooCommerce", "PHP", "Integrations", "Performance"],
+    "url": "https://www.elfbar.de/en"
+  },
+  {
+    "slug": "tzn",
+    "title": "tzn Digital",
+    "category": "RESPONSIVE UI / INTERACTIONS",
+    "categories": ["frontend", "integrations"],
+    "summary": "Turning supplied designs into a responsive, interactive agency website.",
+    "context": "The project combined responsive development with interactive elements, third-party services and consent-aware analytics.",
+    "contributions": ["Built the corporate WordPress site and responsive homepage from supplied designs.", "Delivered AJAX filters, GSAP animations, third-party widgets and video integrations.", "Implemented consent-aware GA4 and marketing scripts.", "Contributed to Core Web Vitals improvements."],
+    "outcome": "Delivered responsive pages and interactive functionality, with analytics scripts integrated around user consent.",
+    "stack": ["WordPress", "PHP", "JavaScript", "AJAX", "GSAP", "GA4"],
+    "url": "https://tzn-digital.com/"
+  }
+]

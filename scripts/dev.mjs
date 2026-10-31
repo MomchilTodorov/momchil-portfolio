@@ -1,0 +1,13 @@
+import { createServer } from 'vite';
+import { startCMS, readPortfolio, writeSnapshot, apiBridge, root } from './runtime.mjs';
+import path from 'node:path';
+const runtime = await startCMS();
+await writeSnapshot(await readPortfolio(runtime));
+const vite = await createServer({configFile:path.join(root,'vite.config.mjs'),plugins:[{name:'wordpress-api-bridge',configureServer(server){server.middlewares.use(apiBridge(runtime));}}]});
+await vite.listen();
+vite.printUrls();
+console.log('WordPress admin: http://127.0.0.1:9417/wp-admin/');
+console.log('CMS data persists in .local/wordpress. Press Ctrl+C to stop both servers.');
+const stop = async () => { await vite.close(); await runtime[Symbol.asyncDispose](); process.exit(0); };
+process.on('SIGINT', stop);
+process.on('SIGTERM', stop);

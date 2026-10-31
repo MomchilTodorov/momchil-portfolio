@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 2,
+  "profile": {
+    "name": "Momchil Todorov",
+    "role": "Senior full-stack WordPress developer",
+    "location": "Varna, Bulgaria",
+    "email": "momchil.v.todorov@gmail.com",
+    "experienceYears": 5,
+    "siteCount": 150,
+    "intro": "I build custom WordPress and WooCommerce functionality — connecting thoughtful interfaces with the business logic underneath.",
+    "bio": "I’m a senior full-stack WordPress developer with 5+ years of agency experience building and supporting websites for international clients.",
+    "agencyBio": "Since February 2021, I’ve worked at tzn digital ventures GmbH, developing WordPress and WooCommerce projects from requirements and design handoff through implementation and production support.",
+    "focusBio": "My work combines custom PHP and MySQL development with responsive interfaces, third-party integrations and practical production troubleshooting.",
+    "employer": "tzn digital ventures GmbH",
+    "experienceStart": "February 2021 — present",
+    "education": "MSc Occupational Psychology",
+    "university": "Coventry University",
+    "cvUrl": "/assets/momchil-todorov-cv.docx"
+  },
+  "projects": [
+    {
+      "id": 4,
+      "slug": "ligre",
+      "title": "LIGRE Coffee Equipment",
+      "summary": "Connecting partner orders with affiliate commissions and B2B workflows.",
+      "path": "/work/ligre/",
+      "categories": [
+        "integrations",
+        "woocommerce"
+      ],
+      "categoryLabel": "WOOCOMMERCE / B2B / AFFILIATE WORKFLOWS",
+      "visual": "ligre",
+      "clientUrl": "https://ligre.com/",
+      "stack": [
+        "WordPress",
+        "WooCommerce",
+        "PHP",
+        "REST APIs",
+        "Affiliate for WooCommerce"
+      ],
+      "contentHTML": "<h2 class=\"wp-block-heading\">Project context</h2><p class=\"wp-block-paragraph\">This work connected partner ordering, affiliate commissions and B2B operations within a WooCommerce implementation.</p><h2 class=\"wp-block-heading\">My contribution</h2><ul class=\"wp-block-list\"><li>Built workflows for partner orders.</li><li>Integrated Affiliate for WooCommerce with multi-level commission functionality.</li><li>Developed REST endpoints to support the connected B2B operations.</li></ul><h2 class=\"wp-block-heading\">Delivered functionality</h2><p class=\"wp-block-paragraph\">Delivered connected partner-order and affiliate workflows within the project’s WooCommerce setup.</p>",
+      "image": null
+    },
+    {
+      "id": 5,
+      "slug": "walhalla",
+      "title": "Walhalla Weine",
+      "summary": "Keeping a WooCommerce catalog connected to the VinX ERP system.",
+      "path": "/work/walhalla/",
+      "categories": [
+        "integrations",
+        "woocommerce"
+      ],
+      "categoryLabel": "ERP INTEGRATION / AUTOMATION",
+      "visual": "walhalla",
+      "clientUrl": "https://www.walhalla-weine.ch/",
+      "stack": [
+        "WordPress",
+        "WooCommerce",
+        "VinX ERP",
+        "REST APIs",
+        "Scheduled imports"
+      ],
+      "contentHTML": "<h2 class=\"wp-block-heading\">Project context</h2><p class=\"wp-block-paragraph\">The integration brought product, inventory, pricing, image and attribute data from VinX ERP into WooCommerce.</p><h2 class=\"wp-block-heading\">My contribution</h2><ul class=\"wp-block-list\"><li>Integrated WooCommerce with the VinX ERP system.</li><li>Built scheduled imports and synchronization logic using REST APIs.</li><li>Automated updates for products, stock, pricing, images and attributes.</li></ul><h2 class=\"wp-block-heading\">Delivered functionality</h2><p class=\"wp-block-paragraph\">Delivered automated catalog updates between the ERP system and the WooCommerce store.</p>",
+      "image": null
+    },
+    {
+      "id": 6,
+      "slug": "elfbar",
+      "title": "Elfbar.de",
+      "summary": "Product configuration and tailored business logic for an online store.",
+      "path": "/work/elfbar/",
+      "categories": [
+        "integrations",
+        "woocommerce"
+      ],
+      "categoryLabel": "CUSTOM FEATURES / PERFORMANCE",
+      "visual": "elfbar",
+      "clientUrl": "https://www.elfbar.de/en",
+      "stack": [
+        "WordPress",
+        "WooCommerce",
+        "PHP",
+        "Integrations",
+        "Performance"
+      ],
+      "contentHTML": "<h2 class=\"wp-block-heading\">Project context</h2><p class=\"wp-block-paragraph\">My contribution focused on tailored WooCommerce functionality and the technical behavior behind the store.</p><h2 class=\"wp-block-heading\">My contribution</h2><ul class=\"wp-block-list\"><li>Built a product configurator.</li><li>Implemented third-party integrations and tailored WooCommerce business logic.</li><li>Contributed performance improvements to the project.</li></ul><h2 class=\"wp-block-heading\">Delivered functionality</h2><p class=\"wp-block-paragraph\">Delivered product configuration and custom store functionality adapted to the project’s requirements.</p>",
+      "image": null
+    },
+    {
+      "id": 7,
+      "slug": "tzn",
+      "title": "tzn Digital",
+      "summary": "Turning supplied designs into a responsive, interactive agency website.",
+      "path": "/work/tzn/",
+      "categories": [
+        "frontend",
+        "integrations"
+      ],
+      "categoryLabel": "RESPONSIVE UI / INTERACTIONS",
+      "visual": "tzn",
+      "clientUrl": "https://tzn-digital.com/",
+      "stack": [
+        "WordPress",
+        "PHP",
+        "JavaScript",
+        "AJAX",
+        "GSAP",
+        "GA4"
+      ],
+      "contentHTML": "<h2 class=\"wp-block-heading\">Project context</h2><p class=\"wp-block-paragraph\">The project combined responsive development with interactive elements, third-party services and consent-aware analytics.</p><h2 class=\"wp-block-heading\">My contribution</h2><ul class=\"wp-block-list\"><li>Built the corporate WordPress site and responsive homepage from supplied designs.</li><li>Delivered AJAX filters, GSAP animations, third-party widgets and video integrations.</li><li>Implemented consent-aware GA4 and marketing scripts.</li><li>Contributed to Core Web Vitals improvements.</li></ul><h2 class=\"wp-block-heading\">Delivered functionality</h2><p class=\"wp-block-paragraph\">Delivered responsive pages and interactive functionality, with analytics scripts integrated around user consent.</p>",
+      "image": null
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+nodeLinker: hoisted
+storeDir: .cache/pnpm-store
+allowBuilds:
+  esbuild: true
+  fs-ext-extra-prebuilt: true
