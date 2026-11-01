@@ -49,7 +49,7 @@ try{
   const serverBundle=path.join(root,'.local/entry-server.mjs');
   const {render}=await import(pathToFileURL(serverBundle).href+'?verify='+Date.now());
   const html=render('/',initial);
-  assert.ok(html.includes('Behind the site.'));
+  assert.ok(html.includes('I build WordPress'));
   assert.ok(render('/work/ligre/',edited).includes('CMS EDIT IN REACT'));
   assert.ok(!safeJSON({text:'</script><script>alert(1)</script>'}).includes('</script>'));
   for(const route of ['index.html',...initial.projects.map(project=>`work/${project.slug}/index.html`),'404.html']){
@@ -66,7 +66,7 @@ try{
   const persistence=await runtime.playground.run({code:`<?php require '/wordpress/wp-load.php'; echo wp_json_encode(['marker'=>get_option('mt_headless_verify_marker'),'summary'=>\\Momchil\\Headless\\Portfolio::public_projects()[0]['summary']]);`});
   assert.equal(JSON.parse(persistence.text).marker,'persists across restarts');
   assert.equal(JSON.parse(persistence.text).summary,'CMS EDIT IN REACT');
-  report={backend,standalone_react:true,php_theme_used_by_frontend:false,react_dom:ui,persistent_cms:true,prerendered_routes:6,bootstrap_script_escaping:true,public_content_sanitization:true,browser_visual_qa:'Not verified: the local browser connection was unavailable. React interaction checks ran in a simulated DOM.'};
+  report={backend,standalone_react:true,php_theme_used_by_frontend:false,react_dom:ui,persistent_cms:true,prerendered_routes:6,bootstrap_script_escaping:true,public_content_sanitization:true,browser_visual_qa:'Not part of this automated command. Check desktop and mobile layouts separately in a browser.'};
   await writeFile(path.join(root,'.local/verification.json'),JSON.stringify(report,null,2));
   console.log(JSON.stringify(report,null,2));
 }finally{

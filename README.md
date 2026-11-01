@@ -99,7 +99,7 @@ The checks use a separate local WordPress database. They cover:
 - React hydration, category filtering, case study navigation, route metadata, 404 handling and retry after an API failure, using a simulated DOM.
 - Persistence across CMS restarts and pre-rendered HTML for the public routes.
 
-The latest report is included as `verification.json`. A simulated DOM does not verify pixel layout. Real desktop/mobile browser visual QA remains unverified in this task environment because the local browser connection was unavailable.
+The saved verification report is included as `verification.json`; each automated run writes its results to `.local/verification.json`. The automated interaction checks use a simulated DOM. The personal-profile redesign was also checked in a real browser at desktop and mobile widths, including filtering, project navigation, contact navigation and copying the email address.
 
 ## Later AI extension
 

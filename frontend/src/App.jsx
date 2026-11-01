@@ -29,11 +29,11 @@ function ProjectPage(){
     <div className="case-body" dangerouslySetInnerHTML={{__html:project.contentHTML}}/>
     <div className="case-stack">{project.stack.map(technology=><span key={technology}>{technology}</span>)}</div>
     <p className="case-credits">Agency work through tzn digital ventures GmbH. This case study describes my contribution to the project; the current live website may have changed since delivery.</p>
-    <div className="case-actions">{clientURL&&<a className="button button-dark" href={clientURL} target="_blank" rel="noopener noreferrer">Visit client website <span aria-hidden="true">↗</span></a>}<Link className="text-link" to="/#contact">Discuss similar work ↗</Link></div>
+    <div className="case-actions">{clientURL&&<a className="button button-primary" href={clientURL} target="_blank" rel="noopener noreferrer">Visit client website <span aria-hidden="true">↗</span></a>}<Link className="text-link" to="/#contact">Contact me ↗</Link></div>
   </main></>;
 }
 
-function NotFound(){return <><PageMeta title="Page not found — Momchil Todorov" description="Return to Momchil Todorov’s portfolio."/><main id="main" className="case-page wrap"><p className="eyebrow">404 / PAGE NOT FOUND</p><h1>Let’s get you<br/><span className="serif">back to the work.</span></h1><Link className="button button-dark" to="/">Return to portfolio ↗</Link></main></>;}
+function NotFound(){return <><PageMeta title="Page not found — Momchil Todorov" description="Return to Momchil Todorov’s portfolio."/><main id="main" className="case-page wrap"><p className="eyebrow">404 / PAGE NOT FOUND</p><h1>Page not found</h1><p>This page doesn’t exist. You can find my projects on the homepage.</p><Link className="button button-primary" to="/">Back to portfolio ↗</Link></main></>;}
 
 export default function App(){
   const {data,status,retry}=usePortfolio();

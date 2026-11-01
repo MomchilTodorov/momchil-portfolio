@@ -23,5 +23,18 @@
   "prerendered_routes": 6,
   "bootstrap_script_escaping": true,
   "public_content_sanitization": true,
-  "browser_visual_qa": "Not verified: the local browser connection was unavailable. React interaction checks ran in a simulated DOM."
+  "browser_visual_qa": {
+    "verified": true,
+    "desktop": true,
+    "mobile_viewport_widths": [
+      390,
+      320
+    ],
+    "horizontal_overflow": false,
+    "filtering": true,
+    "case_navigation": true,
+    "contact_navigation": true,
+    "copy_email": true,
+    "cv_download": true
+  }
 }

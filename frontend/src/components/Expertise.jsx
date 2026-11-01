@@ -1,5 +1,26 @@
-export default function Expertise() { return (
-    <section className="expertise-section" id="expertise" aria-labelledby="expertise-heading"><div className="wrap expertise-inner"><div className="expertise-heading"><p className="eyebrow">02 / HOW I CAN HELP</p><h2 id="expertise-heading">Custom work.<br /><span className="serif">Considered execution.</span></h2><p>I work across the front end, the WordPress backend and the systems that need to connect.</p><a className="text-link" href="#contact">Discuss a project <span aria-hidden="true">↗</span></a></div><div className="expertise-list"><div className="expertise-item"><span>01</span><div><h3>WordPress development</h3><p>Custom PHP themes, plugins, ACF Pro, custom post types and reusable CMS components.</p><div className="skill-tags"><span>PHP / OOP</span><span>Hooks & filters</span><span>ACF Pro</span></div></div></div><div className="expertise-item"><span>02</span><div><h3>WooCommerce & integrations</h3><p>Store functionality, product configuration, partner workflows and connections to external systems.</p><div className="skill-tags"><span>REST APIs</span><span>Webhooks</span><span>ERP sync</span></div></div></div><div className="expertise-item"><span>03</span><div><h3>Interfaces & production support</h3><p>Responsive development from Figma and Adobe XD, production debugging, caching and asset optimization.</p><div className="skill-tags"><span>JavaScript</span><span>Core Web Vitals</span><span>Git</span></div></div></div></div></div></section>
-
-
-); }
+export default function Expertise() {
+  return (
+    <section className="expertise-section" id="expertise" aria-labelledby="expertise-heading">
+      <div className="wrap expertise-inner">
+        <div className="expertise-heading"><h2 id="expertise-heading">What I work on</h2></div>
+        <div className="expertise-list">
+          <div className="expertise-item">
+            <h3>WordPress development</h3>
+            <p>Custom themes and plugins using PHP, ACF and WordPress hooks.</p>
+            <div className="skill-tags"><span>PHP / OOP</span><span>Hooks &amp; filters</span><span>ACF Pro</span></div>
+          </div>
+          <div className="expertise-item">
+            <h3>WooCommerce &amp; integrations</h3>
+            <p>Store features, product options, and connections to other business systems.</p>
+            <div className="skill-tags"><span>REST APIs</span><span>Webhooks</span><span>ERP sync</span></div>
+          </div>
+          <div className="expertise-item">
+            <h3>Front end &amp; support</h3>
+            <p>Responsive pages from Figma and Adobe XD, debugging, caching and site speed.</p>
+            <div className="skill-tags"><span>JavaScript</span><span>Core Web Vitals</span><span>Git</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
