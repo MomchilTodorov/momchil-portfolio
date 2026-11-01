@@ -86,7 +86,11 @@ export function Footer({profile}) {
   return (
     <footer className="site-footer wrap">
       <Link className="footer-name" to="/">{profile.name} <span>· WordPress developer</span></Link>
-      <div className="footer-links"><span>{profile.location}</span><Link to="/#top">Back to top ↑</Link></div>
+      <div className="footer-links">
+        <span>{profile.location}</span>
+        <a href="https://github.com/MomchilTodorov" target="_blank" rel="noopener noreferrer" aria-label="Momchil Todorov on GitHub (opens in a new tab)">GitHub <span aria-hidden="true">↗</span></a>
+        <Link to="/#top">Back to top ↑</Link>
+      </div>
     </footer>
   );
 }
