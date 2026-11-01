@@ -20,12 +20,23 @@ React is bundled independently. The frontend does not use `wp.element`, a WordPr
 
 ## Start locally
 
-Install Node.js 22.12 or newer and pnpm. From the extracted project directory:
+Use Node.js **24.18.0 or newer in the 24.x release line** and **pnpm 11.25.0**, as pinned in `package.json`. Node.js 26.x also meets the locked dependencies’ requirements. The WordPress development tools require at least Node.js 24.18.0.
+
+From the project directory, install dependencies and start the portfolio:
 
 ```sh
 pnpm install
 pnpm dev
 ```
+
+On Windows PowerShell, use the `.cmd` launcher if PowerShell blocks `pnpm.ps1`:
+
+```powershell
+pnpm.cmd install
+pnpm.cmd dev
+```
+
+For later sessions, start the portfolio with `pnpm dev` or `pnpm.cmd dev` in PowerShell. Install dependencies again when `package.json` or `pnpm-lock.yaml` changes. Keep the terminal open while using the site; press Ctrl+C to stop it. The `.cmd` launcher also works for the other commands below, such as `pnpm.cmd build`.
 
 This starts both applications:
 
