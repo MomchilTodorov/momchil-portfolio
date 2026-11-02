@@ -1,0 +1,19 @@
+# Use LF for source files on every operating system.
+* text=auto eol=lf
+
+# Keep Windows command scripts compatible with cmd.exe.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# These assets must never receive text or line-ending conversions.
+*.docx binary
+*.zip binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.pdf binary
+*.ico binary
+*.woff binary
+*.woff2 binary
