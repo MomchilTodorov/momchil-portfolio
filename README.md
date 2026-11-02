@@ -112,6 +112,12 @@ The checks use a separate local WordPress database. They cover:
 
 The saved verification report is included as `verification.json`; each automated run writes its results to `.local/verification.json`. The automated interaction checks use a simulated DOM. The personal-profile redesign was also checked in a real browser at desktop and mobile widths, including filtering, project navigation, contact navigation and copying the email address.
 
+## Automatic build check
+
+The `Portfolio build` GitHub Actions workflow runs on pushes to `main` and on pull requests. You can also start it from the repository’s **Actions** tab.
+
+It uses Node.js 24, installs the pnpm version pinned in `package.json`, installs dependencies with `pnpm install --frozen-lockfile`, and runs `pnpm build`. The build uses the saved WordPress content snapshot, so it can run without a live CMS. Run `pnpm verify` locally for the separate WordPress integration checks.
+
 ## Later AI extension
 
 A separate WordPress plugin can add an **Ask about my work** assistant based on the published case studies and profile. The React chat interface would call that plugin’s backend endpoint. The current package has no chatbot, AI provider credentials, external AI calls or AI usage costs.
