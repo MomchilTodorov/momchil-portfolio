@@ -11,6 +11,7 @@ export function Header({profile}) {
           {profile.name}<span className="identity-dot" aria-hidden="true">.</span>
         </Link>
         <nav className="main-nav" aria-label="Main navigation">
+          <Link to="/#work">Selected work</Link>
           <Link to="/#about">Experience</Link>
           <Link to="/#contact">Contact me <span aria-hidden="true">↗</span></Link>
         </nav>
