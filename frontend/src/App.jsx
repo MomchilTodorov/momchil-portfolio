@@ -29,7 +29,7 @@ function ProjectPage(){
     <div className="case-body" dangerouslySetInnerHTML={{__html:project.contentHTML}}/>
     <div className="case-stack">{project.stack.map(technology=><span key={technology}>{technology}</span>)}</div>
     <p className="case-credits">Agency work through tzn digital ventures GmbH. This case study describes my contribution to the project; the current live website may have changed since delivery.</p>
-    <div className="case-actions">{clientURL&&<a className="button button-primary" href={clientURL} target="_blank" rel="noopener noreferrer">Visit client website <span aria-hidden="true">↗</span></a>}<Link className="text-link" to="/#contact">Contact me ↗</Link></div>
+    <div className="case-actions">{clientURL&&<a className="button button-primary" href={clientURL} target="_blank" rel="noopener noreferrer">Visit client website<span className="sr-only"> (opens in a new tab)</span> <span aria-hidden="true">↗</span></a>}<Link className="text-link" to="/#contact">Contact me ↗</Link></div>
   </main></>;
 }
 
