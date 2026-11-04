@@ -30,11 +30,14 @@ export default function Projects({projects}) {
       </div>
       <div className="work-toolbar">
         <div className="filters" role="group" aria-label="Filter projects">
-          {filters.map(([slug, label]) => (
-            <button key={slug} type="button" className={`filter${active === slug ? ' active' : ''}`} aria-pressed={active === slug} onClick={() => setActive(slug)}>
-              {label}{slug === 'all' && <span>{projects.length}</span>}
-            </button>
-          ))}
+          {filters.map(([slug, label]) => {
+            const count = slug === 'all' ? projects.length : projects.filter(project => project.categories.includes(slug)).length;
+            return (
+              <button key={slug} type="button" className={`filter${active === slug ? ' active' : ''}`} aria-pressed={active === slug} onClick={() => setActive(slug)}>
+                {label} <span>{count}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
       <p className="sr-only" role="status" aria-live="polite">Showing {shown.length} {shown.length === 1 ? 'project' : 'projects'}.</p>

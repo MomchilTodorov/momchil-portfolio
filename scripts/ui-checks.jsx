@@ -40,7 +40,7 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     assert.ok(requests>0,'The standalone React app must fetch WordPress data.');
     assert.ok(document.body.textContent.includes('CMS EDIT IN REACT'));
     assert.equal(errors.length,0,'React hydration must match the prerendered HTML.');
-    await click([...document.querySelectorAll('.filter')].find(button=>button.textContent==='Front end'));
+    await click([...document.querySelectorAll('.filter')].find(button=>button.textContent.startsWith('Front end')));
     assert.equal(document.querySelectorAll('.project-card').length,1);
     assert.ok(document.querySelector('.project-card').textContent.includes('tzn Digital'));
     await click(document.querySelector('.project-card a'));
