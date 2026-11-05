@@ -100,7 +100,14 @@ export function RouteEffects() {
   const {pathname, hash} = useLocation();
   useEffect(() => {
     if (hash) {
-      const frame = requestAnimationFrame(() => document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView());
+      const fragment = hash.slice(1);
+      let id = fragment;
+      try {
+        id = decodeURIComponent(fragment);
+      } catch {
+        // A malformed escape can still be part of a literal element ID.
+      }
+      const frame = requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());
       return () => cancelAnimationFrame(frame);
     }
     window.scrollTo({top: 0, left: 0, behavior: 'instant'});

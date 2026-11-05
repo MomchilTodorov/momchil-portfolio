@@ -10,7 +10,8 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});
   }
   dom.window.scrollTo=()=>{};
-  dom.window.HTMLElement.prototype.scrollIntoView=()=>{};
+  let scrollTarget;
+  dom.window.HTMLElement.prototype.scrollIntoView=function(){scrollTarget=this.id;};
   const originalFetch=globalThis.fetch;
   let requests=0;
   let fail=false;
@@ -50,6 +51,15 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     await click(document.querySelector('.back-link'));
     assert.equal(window.location.pathname,'/');
     assert.equal(document.querySelectorAll('.project-card').length,4);
+    const anchorErrors=[];
+    window.addEventListener('error',event=>anchorErrors.push(event.error));
+    for(const hash of ['#%ZZ','#%77ork']){
+      scrollTarget=undefined;
+      await act(async()=>{window.history.pushState({},'',hash);window.dispatchEvent(new dom.window.PopStateEvent('popstate'));});
+      await new Promise(resolve=>window.requestAnimationFrame(resolve));
+    }
+    assert.deepEqual(anchorErrors,[],'A malformed URL fragment must not throw.');
+    assert.equal(scrollTarget,'work','An encoded URL fragment must still scroll to its target.');
     await click(document.querySelector('.project-card a'));
     assert.equal(window.location.pathname,'/work/ligre/');
     assert.equal(document.querySelector('.case-body script'),null);
