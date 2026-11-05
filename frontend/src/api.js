@@ -26,7 +26,11 @@ export async function loadPortfolio({base = '/api/', signal, fetcher = globalThi
 
 export function safeURL(value) {
   if (typeof value !== 'string') return '';
-  if (value.startsWith('/') && !value.startsWith('//')) return value;
+  if (value.startsWith('/')) {
+    // Browsers strip tabs and newlines and treat a leading backslash as a slash.
+    const path = value.replace(/[\t\n\r]/g, '');
+    return path.startsWith('//') || path.startsWith('/\\') ? '' : value;
+  }
   try { const url = new URL(value); return ['https:','http:'].includes(url.protocol) ? url.href : ''; }
   catch { return ''; }
 }
