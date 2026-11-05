@@ -9,7 +9,7 @@ import {safeURL} from './api.js';
 
 function HomePage(){
   const {data}=usePortfolio();
-  return <><PageMeta title={`${data.profile.name} — WordPress & WooCommerce Developer`} description={data.profile.intro}/><main id="main"><Hero profile={data.profile}/><Projects projects={data.projects}/><Expertise/><About profile={data.profile}/><Contact profile={data.profile}/></main></>;
+  return <><PageMeta title={`${data.profile.name} — WordPress & WooCommerce Developer`} description={data.profile.intro}/><main id="main" tabIndex={-1}><Hero profile={data.profile}/><Projects projects={data.projects}/><Expertise/><About profile={data.profile}/><Contact profile={data.profile}/></main></>;
 }
 
 function ProjectPage(){
@@ -17,12 +17,12 @@ function ProjectPage(){
   const {data,status,retry}=usePortfolio();
   const project=data.projects.find(item=>item.slug===slug);
   if(!project){
-    if(status==='loading'||status==='refreshing')return <main id="main" className="case-page wrap"><p role="status">Loading case study…</p></main>;
-    if(status==='error')return <main id="main" className="case-page wrap"><h1>Case study unavailable</h1><p>This case study couldn’t be loaded.</p><button type="button" className="button button-dark" onClick={retry}>Try again</button></main>;
+    if(status==='loading'||status==='refreshing')return <main id="main" tabIndex={-1} className="case-page wrap"><p role="status">Loading case study…</p></main>;
+    if(status==='error')return <main id="main" tabIndex={-1} className="case-page wrap"><h1>Case study unavailable</h1><p>This case study couldn’t be loaded.</p><button type="button" className="button button-dark" onClick={retry}>Try again</button></main>;
     return <NotFound/>;
   }
   const clientURL=safeURL(project.clientUrl);
-  return <><PageMeta title={`${project.title} — ${data.profile.name}`} description={project.summary}/><main id="main" className="case-page wrap">
+  return <><PageMeta title={`${project.title} — ${data.profile.name}`} description={project.summary}/><main id="main" tabIndex={-1} className="case-page wrap">
     <Link className="text-link back-link" to="/#work">← Back to selected work</Link><p className="case-category">{project.categoryLabel}</p><h1>{project.title}</h1><p className="case-summary">{project.summary}</p>
     {safeURL(project.image)?<div className="project-art project-image"><img src={safeURL(project.image)} alt=""/></div>:<ProjectArt visual={project.visual}/>}
     {/* HTML is rendered by WordPress and sanitized server-side with wp_kses_post. */}
@@ -33,7 +33,7 @@ function ProjectPage(){
   </main></>;
 }
 
-function NotFound(){return <><PageMeta title="Page not found — Momchil Todorov" description="Return to Momchil Todorov’s portfolio."/><main id="main" className="case-page wrap"><p className="eyebrow">404 / PAGE NOT FOUND</p><h1>Page not found</h1><p>This page doesn’t exist. You can find my projects on the homepage.</p><Link className="button button-primary" to="/">Back to portfolio ↗</Link></main></>;}
+function NotFound(){return <><PageMeta title="Page not found — Momchil Todorov" description="Return to Momchil Todorov’s portfolio."/><main id="main" tabIndex={-1} className="case-page wrap"><p className="eyebrow">404 / PAGE NOT FOUND</p><h1>Page not found</h1><p>This page doesn’t exist. You can find my projects on the homepage.</p><Link className="button button-primary" to="/">Back to portfolio ↗</Link></main></>;}
 
 export default function App(){
   const {data,status,retry}=usePortfolio();
