@@ -97,6 +97,22 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     await act(async()=>{window.history.pushState({},'', '/work/not-a-project/');window.dispatchEvent(new dom.window.PopStateEvent('popstate'));});
     assert.ok(document.body.textContent.includes('404 / PAGE NOT FOUND'));
     assert.equal(document.activeElement,document.getElementById('main'),'The 404 route must also receive keyboard focus.');
+    const normalFetch=globalThis.fetch;
+    let finishCaseRequest;
+    globalThis.fetch=()=>new Promise(resolve=>{finishCaseRequest=resolve;});
+    await act(async()=>reactRoot.render(application(initialData,'case-metadata')));
+    assert.equal(document.title,`Loading case study — ${initialData.profile.name}`);
+    assert.equal(document.querySelector('meta[name="description"]').content,'Loading the requested project and its case study.');
+    assert.ok(document.querySelector('main [role="status"]').textContent.includes('Loading case study'));
+    await act(async()=>finishCaseRequest({ok:false,status:503}));
+    assert.equal(document.querySelector('h1').textContent,'Case study unavailable');
+    assert.equal(document.title,`Case study unavailable — ${initialData.profile.name}`);
+    assert.equal(document.querySelector('meta[property="og:title"]').content,document.title);
+    assert.equal(document.querySelector('meta[name="description"]').content,'This case study couldn’t be loaded. Please try again.');
+    assert.equal(document.querySelector('link[rel="canonical"]').href,'http://portfolio.test/work/not-a-project/');
+    globalThis.fetch=normalFetch;
+    await click(document.querySelector('.case-page button'));
+    assert.ok(document.title.startsWith('Page not found'),'A successful retry must replace the unavailable metadata.');
     await act(async()=>{window.history.pushState({},'', '/');window.dispatchEvent(new dom.window.PopStateEvent('popstate'));});
     fail=true;
     await act(async()=>reactRoot.render(application(null,'failure')));
@@ -105,7 +121,7 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     fail=false;
     await click(document.querySelector('button'));
     assert.equal(document.querySelectorAll('.project-card').length,4);
-    return {hydration:true,real_api_refresh:true,copy_email:true,filtering:true,case_navigation:true,route_focus:true,metadata:true,not_found:true,error_and_retry:true,requests};
+    return {hydration:true,real_api_refresh:true,copy_email:true,filtering:true,case_navigation:true,route_focus:true,metadata:true,case_state_metadata:true,not_found:true,error_and_retry:true,requests};
   }finally{
     if(reactRoot)await act(async()=>reactRoot.unmount());
     globalThis.fetch=originalFetch;

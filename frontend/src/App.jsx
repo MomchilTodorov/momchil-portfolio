@@ -17,8 +17,18 @@ function ProjectPage(){
   const {data,status,retry}=usePortfolio();
   const project=data.projects.find(item=>item.slug===slug);
   if(!project){
-    if(status==='loading'||status==='refreshing')return <main id="main" tabIndex={-1} className="case-page wrap"><p role="status">Loading case study…</p></main>;
-    if(status==='error')return <main id="main" tabIndex={-1} className="case-page wrap"><h1>Case study unavailable</h1><p>This case study couldn’t be loaded.</p><button type="button" className="button button-dark" onClick={retry}>Try again</button></main>;
+    if(status==='loading'||status==='refreshing'){
+      return <>
+        <PageMeta title={`Loading case study — ${data.profile.name}`} description="Loading the requested project and its case study."/>
+        <main id="main" tabIndex={-1} className="case-page wrap"><p role="status">Loading case study…</p></main>
+      </>;
+    }
+    if(status==='error'){
+      return <>
+        <PageMeta title={`Case study unavailable — ${data.profile.name}`} description="This case study couldn’t be loaded. Please try again."/>
+        <main id="main" tabIndex={-1} className="case-page wrap"><h1>Case study unavailable</h1><p>This case study couldn’t be loaded.</p><button type="button" className="button button-dark" onClick={retry}>Try again</button></main>
+      </>;
+    }
     return <NotFound/>;
   }
   const clientURL=safeURL(project.clientUrl);
