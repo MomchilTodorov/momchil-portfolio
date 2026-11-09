@@ -47,14 +47,17 @@ export function About({profile}) {
 export function Contact({profile}) {
   const [label, setLabel] = useState('Copy email');
   const [announcement, setAnnouncement] = useState('');
+  const [copying, setCopying] = useState(false);
 
   useEffect(() => {
-    if (label === 'Copy email') return;
+    if (copying || label === 'Copy email') return;
     const timer = setTimeout(() => setLabel('Copy email'), 2500);
     return () => clearTimeout(timer);
-  }, [label]);
+  }, [label, copying]);
 
   async function copy() {
+    setCopying(true);
+    setAnnouncement('Copying email address…');
     try {
       await navigator.clipboard.writeText(profile.email);
       setLabel('Email copied');
@@ -62,6 +65,8 @@ export function Contact({profile}) {
     } catch {
       setLabel('Select email to copy');
       setAnnouncement('Select the email address and use your browser’s copy command.');
+    } finally {
+      setCopying(false);
     }
   }
 
@@ -74,8 +79,8 @@ export function Contact({profile}) {
           <p className="contact-description">If you’re hiring a WordPress developer or have a project in mind, send me an email.</p>
           <a className="email-link" href={`mailto:${profile.email}`}>{profile.email} <span aria-hidden="true">↗</span></a>
         </div>
-        <button className="button button-secondary copy-email" type="button" onClick={copy}>
-          <span className="copy-label">{label}</span>
+        <button className="button button-secondary copy-email" type="button" onClick={copy} disabled={copying} aria-busy={copying}>
+          <span className="copy-label">{copying ? 'Copying email…' : label}</span>
         </button>
         <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
       </div>

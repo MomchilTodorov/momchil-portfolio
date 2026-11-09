@@ -42,6 +42,30 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     assert.ok(document.body.textContent.includes('CMS EDIT IN REACT'));
     assert.equal(errors.length,0,'React hydration must match the prerendered HTML.');
     assert.notEqual(document.activeElement,document.getElementById('main'),'Initial hydration must preserve the current focus.');
+    const copiedEmails=[];
+    let finishCopy;
+    Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:email=>{
+      copiedEmails.push(email);
+      return new Promise(resolve=>{finishCopy=resolve;});
+    }}});
+    const copyButton=document.querySelector('.copy-email');
+    await click(copyButton);
+    assert.equal(copyButton.disabled,true,'Copy email must be disabled while the clipboard request is pending.');
+    assert.equal(copyButton.getAttribute('aria-busy'),'true');
+    assert.equal(copyButton.textContent,'Copying email…');
+    await click(copyButton);
+    assert.deepEqual(copiedEmails,[initialData.profile.email],'A pending clipboard request must not be duplicated.');
+    await act(async()=>finishCopy());
+    assert.equal(copyButton.disabled,false);
+    assert.equal(copyButton.textContent,'Email copied');
+    navigator.clipboard.writeText=async()=>{throw new Error('Clipboard access denied');};
+    await click(copyButton);
+    assert.equal(copyButton.disabled,false,'Clipboard failure must leave the button available for another attempt.');
+    assert.equal(copyButton.textContent,'Select email to copy');
+    assert.ok(document.querySelector('.contact-panel [role="status"]').textContent.includes('browser’s copy command'));
+    navigator.clipboard.writeText=async email=>{copiedEmails.push(email);};
+    await click(copyButton);
+    assert.equal(copyButton.textContent,'Email copied','Copying must recover after a clipboard failure.');
     await click([...document.querySelectorAll('.filter')].find(button=>button.textContent.startsWith('Front end')));
     assert.equal(document.querySelectorAll('.project-card').length,1);
     assert.ok(document.querySelector('.project-card').textContent.includes('tzn Digital'));
@@ -81,7 +105,7 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     fail=false;
     await click(document.querySelector('button'));
     assert.equal(document.querySelectorAll('.project-card').length,4);
-    return {hydration:true,real_api_refresh:true,filtering:true,case_navigation:true,route_focus:true,metadata:true,not_found:true,error_and_retry:true,requests};
+    return {hydration:true,real_api_refresh:true,copy_email:true,filtering:true,case_navigation:true,route_focus:true,metadata:true,not_found:true,error_and_retry:true,requests};
   }finally{
     if(reactRoot)await act(async()=>reactRoot.unmount());
     globalThis.fetch=originalFetch;
