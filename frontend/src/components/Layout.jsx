@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {Link, useLocation} from 'react-router-dom';
 import {safeURL} from '../api.js';
 
@@ -98,7 +98,12 @@ export function Footer({profile}) {
 
 export function RouteEffects() {
   const {pathname, hash} = useLocation();
+  const previousPathname = useRef(pathname);
   useEffect(() => {
+    if (previousPathname.current !== pathname) {
+      document.getElementById('main')?.focus({preventScroll: true});
+      previousPathname.current = pathname;
+    }
     if (hash) {
       const fragment = hash.slice(1);
       let id = fragment;

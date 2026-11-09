@@ -41,6 +41,7 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     assert.ok(requests>0,'The standalone React app must fetch WordPress data.');
     assert.ok(document.body.textContent.includes('CMS EDIT IN REACT'));
     assert.equal(errors.length,0,'React hydration must match the prerendered HTML.');
+    assert.notEqual(document.activeElement,document.getElementById('main'),'Initial hydration must preserve the current focus.');
     await click([...document.querySelectorAll('.filter')].find(button=>button.textContent.startsWith('Front end')));
     assert.equal(document.querySelectorAll('.project-card').length,1);
     assert.ok(document.querySelector('.project-card').textContent.includes('tzn Digital'));
@@ -48,9 +49,13 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     assert.equal(window.location.pathname,'/work/tzn/');
     assert.equal(document.querySelector('h1').textContent,'tzn Digital');
     assert.ok(document.title.includes('tzn Digital'));
+    assert.equal(document.activeElement,document.getElementById('main'),'A case study navigation must focus the new main content.');
     await click(document.querySelector('.back-link'));
     assert.equal(window.location.pathname,'/');
     assert.equal(document.querySelectorAll('.project-card').length,4);
+    assert.equal(document.activeElement,document.getElementById('main'),'Returning home must focus its main content.');
+    const focusedFilter=document.querySelector('.filter');
+    focusedFilter.focus();
     const anchorErrors=[];
     window.addEventListener('error',event=>anchorErrors.push(event.error));
     for(const hash of ['#%ZZ','#%77ork']){
@@ -60,12 +65,14 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     }
     assert.deepEqual(anchorErrors,[],'A malformed URL fragment must not throw.');
     assert.equal(scrollTarget,'work','An encoded URL fragment must still scroll to its target.');
+    assert.equal(document.activeElement,focusedFilter,'Section navigation must preserve keyboard focus on the same page.');
     await click(document.querySelector('.project-card a'));
     assert.equal(window.location.pathname,'/work/ligre/');
     assert.equal(document.querySelector('.case-body script'),null);
     assert.equal(document.querySelector('.case-body [onerror]'),null);
     await act(async()=>{window.history.pushState({},'', '/work/not-a-project/');window.dispatchEvent(new dom.window.PopStateEvent('popstate'));});
     assert.ok(document.body.textContent.includes('404 / PAGE NOT FOUND'));
+    assert.equal(document.activeElement,document.getElementById('main'),'The 404 route must also receive keyboard focus.');
     await act(async()=>{window.history.pushState({},'', '/');window.dispatchEvent(new dom.window.PopStateEvent('popstate'));});
     fail=true;
     await act(async()=>reactRoot.render(application(null,'failure')));
@@ -74,7 +81,7 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     fail=false;
     await click(document.querySelector('button'));
     assert.equal(document.querySelectorAll('.project-card').length,4);
-    return {hydration:true,real_api_refresh:true,filtering:true,case_navigation:true,metadata:true,not_found:true,error_and_retry:true,requests};
+    return {hydration:true,real_api_refresh:true,filtering:true,case_navigation:true,route_focus:true,metadata:true,not_found:true,error_and_retry:true,requests};
   }finally{
     if(reactRoot)await act(async()=>reactRoot.unmount());
     globalThis.fetch=originalFetch;
