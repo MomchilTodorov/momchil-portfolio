@@ -1,21 +1,29 @@
-import {Routes,Route,Link,useParams} from 'react-router-dom';
+import {Routes,Route,Link,useLocation,useParams} from 'react-router-dom';
 import {usePortfolio} from './context.jsx';
-import {Header,Footer,About,Contact,RouteEffects,PageMeta} from './components/Layout.jsx';
-import Hero from './components/Hero.jsx';
-import Expertise from './components/Expertise.jsx';
-import Projects from './components/Projects.jsx';
-import ProjectArt from './components/ProjectArt.jsx';
+import {Header,RouteEffects,PageMeta} from './components/Layout.jsx';
+import {ProjectGallery,ProjectMedia} from './components/Projects.jsx';
+import ProjectLink from './components/ProjectLink.jsx';
 import {safeURL} from './api.js';
 
 function HomePage(){
   const {data}=usePortfolio();
-  return <><PageMeta title={`${data.profile.name} — WordPress & WooCommerce Developer`} description={data.profile.intro}/><main id="main" tabIndex={-1}><Hero profile={data.profile}/><Projects projects={data.projects}/><Expertise/><About profile={data.profile}/><Contact profile={data.profile}/></main></>;
+  const {state}=useLocation();
+  return (
+    <div className="showcase" id="top">
+      <PageMeta title={`${data.profile.name} — WordPress & WooCommerce Developer`} description={data.profile.intro}/>
+      <Header profile={data.profile} projects={data.projects}/>
+      <main id="main" tabIndex={-1}>
+        <ProjectGallery projects={data.projects} initialProject={state?.project}/>
+      </main>
+    </div>
+  );
 }
 
 function ProjectPage(){
   const {slug}=useParams();
   const {data,status,retry}=usePortfolio();
-  const project=data.projects.find(item=>item.slug===slug);
+  const projectIndex=data.projects.findIndex(item=>item.slug===slug);
+  const project=data.projects[projectIndex];
   if(!project){
     if(status==='loading'||status==='refreshing'){
       return <>
@@ -32,15 +40,39 @@ function ProjectPage(){
     return <NotFound/>;
   }
   const clientURL=safeURL(project.clientUrl);
-  return <><PageMeta title={`${project.title} — ${data.profile.name}`} description={project.summary}/><main id="main" tabIndex={-1} className="case-page wrap">
-    <Link className="text-link back-link" to="/#work">← Back to selected work</Link><p className="case-category">{project.categoryLabel}</p><h1>{project.title}</h1><p className="case-summary">{project.summary}</p>
-    {safeURL(project.image)?<div className="project-art project-image"><img src={safeURL(project.image)} alt=""/></div>:<ProjectArt visual={project.visual}/>}
-    {/* HTML is rendered by WordPress and sanitized server-side with wp_kses_post. */}
-    <div className="case-body" dangerouslySetInnerHTML={{__html:project.contentHTML}}/>
-    <div className="case-stack">{project.stack.map(technology=><span key={technology}>{technology}</span>)}</div>
-    <p className="case-credits">Agency work through tzn digital ventures GmbH. This case study describes my contribution to the project; the current live website may have changed since delivery.</p>
-    <div className="case-actions">{clientURL&&<a className="button button-primary" href={clientURL} target="_blank" rel="noopener noreferrer">Visit client website<span className="sr-only"> (opens in a new tab)</span> <span aria-hidden="true">↗</span></a>}<Link className="text-link" to="/#contact">Contact me ↗</Link></div>
-  </main></>;
+  const count=data.projects.length;
+  const previous=data.projects[(projectIndex+count-1)%count];
+  const next=data.projects[(projectIndex+1)%count];
+  return (
+    <>
+      <PageMeta title={`${project.title} — ${data.profile.name}`} description={project.summary}/>
+      <a className="skip-link" href="#main">Skip to content</a>
+      <main key={slug} id="main" tabIndex={-1} className="case-page case-detail">
+        <header className="case-header">
+          <div><p>{project.categoryLabel}</p><p>Agency: tzn digital ventures</p></div>
+          {clientURL && <a href={clientURL} target="_blank" rel="noopener noreferrer" aria-label="View client website (opens in a new tab)">View <span aria-hidden="true">↗</span></a>}
+        </header>
+        <div className="case-content">
+          <div className="case-media"><ProjectMedia project={project} eager/></div>
+          <h1>{project.title}</h1>
+          <p className="case-summary">{project.summary}</p>
+          {/* WordPress sanitizes the article HTML before serving it. */}
+          <div className="case-body" dangerouslySetInnerHTML={{__html:project.contentHTML}}/>
+          <div className="case-stack">{project.stack.map(technology=><span key={technology}>{technology}</span>)}</div>
+          <p className="case-credits">Agency work through tzn digital ventures GmbH. This case study describes my contribution to the project; the current live website may have changed since delivery.</p>
+          <Link className="text-link" to="/#contact">Contact me <span aria-hidden="true">↗</span></Link>
+        </div>
+        <nav className="case-navigation" aria-label="Case study navigation">
+          <div className="case-switch">
+            {count > 1 && <ProjectLink to={`/work/${previous.slug}/`} motion="previous" aria-label={`Previous project: ${previous.title}`}>←</ProjectLink>}
+            <span>{project.title}</span>
+            {count > 1 && <ProjectLink to={`/work/${next.slug}/`} motion="next" aria-label={`Next project: ${next.title}`}>→</ProjectLink>}
+          </div>
+          <ProjectLink className="back-link" to="/#work" state={{project:slug}} motion="close" aria-label="Close case study">×</ProjectLink>
+        </nav>
+      </main>
+    </>
+  );
 }
 
 function NotFound(){return <><PageMeta title="Page not found — Momchil Todorov" description="Return to Momchil Todorov’s portfolio."/><main id="main" tabIndex={-1} className="case-page wrap"><p className="eyebrow">404 / PAGE NOT FOUND</p><h1>Page not found</h1><p>This page doesn’t exist. You can find my projects on the homepage.</p><Link className="button button-primary" to="/">Back to portfolio ↗</Link></main></>;}
@@ -48,5 +80,5 @@ function NotFound(){return <><PageMeta title="Page not found — Momchil Todorov
 export default function App(){
   const {data,status,retry}=usePortfolio();
   if(!data)return <main id="main" className="case-page wrap"><h1>{status==='error'?'Portfolio unavailable':'Loading portfolio…'}</h1>{status==='error'?<><p>Please try again in a moment.</p><button className="button button-dark" onClick={retry}>Try again</button></>:<p role="status">Loading projects and profile.</p>}</main>;
-  return <><RouteEffects/><Header profile={data.profile}/>{status==='error'&&<div className="refresh-notice wrap" role="status">Couldn’t refresh the portfolio. <button type="button" onClick={retry}>Try again</button></div>}<Routes><Route path="/" element={<HomePage/>}/><Route path="/work/:slug/" element={<ProjectPage/>}/><Route path="*" element={<NotFound/>}/></Routes><Footer profile={data.profile}/></>;
+  return <><RouteEffects/>{status==='error'&&<div className="refresh-notice wrap" role="status">Couldn’t refresh the portfolio. <button type="button" onClick={retry}>Try again</button></div>}<Routes><Route path="/" element={<HomePage/>}/><Route path="/work/:slug/" element={<ProjectPage/>}/><Route path="*" element={<NotFound/>}/></Routes></>;
 }

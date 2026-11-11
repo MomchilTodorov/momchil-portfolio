@@ -10,6 +10,12 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});
   }
   dom.window.scrollTo=()=>{};
+  const dialogPrototype = dom.window.HTMLDialogElement.prototype;
+  dialogPrototype.showModal ??= function() { this.open = true; };
+  dialogPrototype.close ??= function() {
+    this.open = false;
+    this.dispatchEvent(new dom.window.Event('close'));
+  };
   let scrollTarget;
   dom.window.HTMLElement.prototype.scrollIntoView=function(){scrollTarget=this.id;};
   const originalFetch=globalThis.fetch;
@@ -33,15 +39,31 @@ export async function checkUI({initialData,html,fetchPortfolio}){
   let reactRoot;
   const application=(data,key='normal')=><BrowserRouter><PortfolioProvider key={key} initialData={data}><App/></PortfolioProvider></BrowserRouter>;
   async function settle(){await act(async()=>{await Promise.all(pending.splice(0));});}
-  const click=async element=>{assert.ok(element,'Expected a clickable element.');await act(async()=>element.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true,cancelable:true,button:0})));await settle();};
+  const click=async (element,detail=0)=>{assert.ok(element,'Expected a clickable element.');await act(async()=>element.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true,cancelable:true,button:0,detail})));await settle();};
   try{
     await act(async()=>{reactRoot=hydrateRoot(document.getElementById('root'),application(initialData),{onRecoverableError:error=>errors.push(error.message)});});
     await settle();
     assert.equal(document.querySelectorAll('.project-card').length,4);
+    assert.equal(document.querySelectorAll('.gallery-slide').length,4);
     assert.ok(requests>0,'The standalone React app must fetch WordPress data.');
     assert.ok(document.body.textContent.includes('CMS EDIT IN REACT'));
     assert.equal(errors.length,0,'React hydration must match the prerendered HTML.');
     assert.notEqual(document.activeElement,document.getElementById('main'),'Initial hydration must preserve the current focus.');
+    const currentProject=()=>document.querySelector('.gallery-current').textContent;
+    const galleryButton=label=>document.querySelector(`.gallery-controls button[aria-label="${label} project"]`);
+    assert.equal(currentProject(),'LIGRE Coffee Equipment');
+    await click(galleryButton('Next'));
+    assert.equal(currentProject(),'Walhalla Weine');
+    await act(async()=>document.querySelector('.gallery-current').dispatchEvent(
+      new dom.window.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true,cancelable:true}),
+    ));
+    assert.equal(currentProject(),'LIGRE Coffee Equipment');
+    await click(document.querySelector('.gallery-slide[data-position="-1"]'));
+    assert.equal(window.location.pathname,'/work/tzn/','An off-center card must open its own case study.');
+    await click(document.querySelector('.back-link'));
+    assert.equal(currentProject(),'tzn Digital');
+    await click(document.querySelector('.showcase-about'));
+    assert.equal(document.querySelector('.about-dialog').open,true);
     const copiedEmails=[];
     let finishCopy;
     Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:email=>{
@@ -77,9 +99,58 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     await click(document.querySelector('.back-link'));
     assert.equal(window.location.pathname,'/');
     assert.equal(document.querySelectorAll('.project-card').length,4);
+    assert.equal(currentProject(),'tzn Digital','Closing a case study must restore the selected slide.');
+    assert.equal(document.querySelector('.about-dialog').open,false);
     assert.equal(document.activeElement,document.getElementById('main'),'Returning home must focus its main content.');
-    const focusedFilter=document.querySelector('.filter');
-    focusedFilter.focus();
+    const stage=document.querySelector('.gallery-stage');
+    const centered=stage.querySelector('[data-position="0"]');
+    const pointer=(type,clientX,timeStamp)=>{
+      const event=new dom.window.PointerEvent(type,{
+        bubbles:true,button:0,clientX,clientY:120,pointerId:1,pointerType:'mouse',isPrimary:true,
+      });
+      Object.defineProperty(event,'timeStamp',{value:timeStamp});
+      return event;
+    };
+    const frame=()=>new Promise(resolve=>window.requestAnimationFrame(resolve));
+    const finishTravel=()=>act(async()=>{
+      let previousOffset;
+      for(let i=0;i<90;i++){
+        await frame();
+        const offset=centered.style.getPropertyValue('--arc-x');
+        if(offset===previousOffset&&!stage.hasAttribute('data-moving'))return;
+        previousOffset=offset;
+      }
+      assert.fail('The carousel must settle and clear color separation.');
+    });
+    await act(async()=>{
+      centered.dispatchEvent(pointer('pointermove',240,0));
+      await frame();
+    });
+    assert.ok(Number.parseFloat(stage.style.getPropertyValue('--camera-yaw'))>0,'The camera must follow the pointer.');
+    await act(async()=>{
+      centered.dispatchEvent(pointer('pointerdown',260,10));
+      stage.dispatchEvent(pointer('pointermove',190,100));
+      await frame();
+    });
+    assert.equal(stage.dataset.dragging,'true');
+    assert.ok(Number(centered.style.getPropertyValue('--arc-x'))<0,'The card must move while the pointer is held.');
+    assert.ok(Number(stage.querySelector('[data-shift="red"]').getAttribute('dx'))>0,'Color separation must follow the direction of travel.');
+    await act(async()=>stage.dispatchEvent(pointer('pointerup',190,145)));
+    await click(centered,1);
+    assert.equal(window.location.pathname,'/','Releasing a drag must not open a case study.');
+    await finishTravel();
+    const partialOffset=Number(centered.style.getPropertyValue('--arc-x'));
+    assert.ok(partialOffset<-.31&&partialOffset>-.34,'A short drag must settle at the dragged offset.');
+    assert.equal(currentProject(),'tzn Digital','The closest card must remain selected after a short drag.');
+    await act(async()=>stage.dispatchEvent(new dom.window.WheelEvent('wheel',{bubbles:true,deltaX:100})));
+    await finishTravel();
+    const wheelOffset=Number(centered.style.getPropertyValue('--arc-x'));
+    assert.ok(wheelOffset<-.65&&wheelOffset>-.95,'Wheel input must leave the carousel between cards.');
+    assert.equal(currentProject(),'LIGRE Coffee Equipment');
+    await click(galleryButton('Previous'));
+    assert.equal(currentProject(),'tzn Digital');
+    const focusedProject=document.querySelector('.gallery-current');
+    focusedProject.focus();
     const anchorErrors=[];
     window.addEventListener('error',event=>anchorErrors.push(event.error));
     for(const hash of ['#%ZZ','#%77ork']){
@@ -89,8 +160,10 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     }
     assert.deepEqual(anchorErrors,[],'A malformed URL fragment must not throw.');
     assert.equal(scrollTarget,'work','An encoded URL fragment must still scroll to its target.');
-    assert.equal(document.activeElement,focusedFilter,'Section navigation must preserve keyboard focus on the same page.');
-    await click(document.querySelector('.project-card a'));
+    assert.equal(document.activeElement,focusedProject,'Section navigation must preserve keyboard focus on the same page.');
+    await click(galleryButton('Next'));
+    assert.equal(currentProject(),'LIGRE Coffee Equipment','Advancing from the last slide must wrap to the first.');
+    await click(document.querySelector('.gallery-slide[data-position="0"]'));
     assert.equal(window.location.pathname,'/work/ligre/');
     assert.equal(document.querySelector('.case-body script'),null);
     assert.equal(document.querySelector('.case-body [onerror]'),null);
@@ -121,7 +194,7 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     fail=false;
     await click(document.querySelector('button'));
     assert.equal(document.querySelectorAll('.project-card').length,4);
-    return {hydration:true,real_api_refresh:true,copy_email:true,filtering:true,case_navigation:true,route_focus:true,metadata:true,case_state_metadata:true,not_found:true,error_and_retry:true,requests};
+    return {hydration:true,real_api_refresh:true,gallery_navigation:true,gallery_drag:true,about_panel:true,copy_email:true,filtering:true,case_navigation:true,route_focus:true,metadata:true,case_state_metadata:true,not_found:true,error_and_retry:true,requests};
   }finally{
     if(reactRoot)await act(async()=>reactRoot.unmount());
     globalThis.fetch=originalFetch;

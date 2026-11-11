@@ -1,21 +1,61 @@
 import {useEffect, useRef, useState} from 'react';
-import {Link, useLocation} from 'react-router-dom';
+import {useLocation} from 'react-router-dom';
 import {safeURL} from '../api.js';
+import Expertise from './Expertise.jsx';
+import {ProjectIndex} from './Projects.jsx';
 
-export function Header({profile}) {
+export function Header({profile, projects}) {
+  const panel = useRef(null);
+  const trigger = useRef(null);
+  const {hash} = useLocation();
+
+  useEffect(() => {
+    if (!['#about', '#contact', '#expertise'].includes(hash)) return;
+    const dialog = panel.current;
+    if (!dialog.open) dialog.showModal();
+    const frame = requestAnimationFrame(() => dialog.querySelector(hash)?.scrollIntoView());
+    return () => cancelAnimationFrame(frame);
+  }, [hash]);
+
   return (
     <>
       <a className="skip-link" href="#main">Skip to content</a>
-      <header className="site-header wrap">
-        <Link to="/" className="identity" aria-label={`${profile.name}, home`}>
-          {profile.name}<span className="identity-dot" aria-hidden="true">.</span>
-        </Link>
-        <nav className="main-nav" aria-label="Main navigation">
-          <Link to="/#work">Selected work</Link>
-          <Link to="/#about">Experience</Link>
-          <Link to="/#contact">Contact me <span aria-hidden="true">↗</span></Link>
-        </nav>
+      <header className="showcase-header">
+        <div className="showcase-identity">
+          <h1>{profile.name}</h1>
+          <p>{profile.role}</p>
+        </div>
+        <button ref={trigger} className="showcase-about" type="button" onClick={() => panel.current.showModal()} aria-haspopup="dialog">
+          About
+        </button>
       </header>
+      <dialog
+        ref={panel}
+        className="about-dialog"
+        aria-labelledby="about-dialog-title"
+        onClose={() => trigger.current?.focus()}
+        onClick={event => {
+          if (event.target === event.currentTarget) panel.current.close();
+        }}
+      >
+        <div className="about-sheet">
+          <div className="about-bar">
+            <h2 id="about-dialog-title">About</h2>
+            <button type="button" onClick={() => panel.current.close()}>Close <span aria-hidden="true">×</span></button>
+          </div>
+          <div className="about-scroll">
+            <About profile={profile}/>
+            <Expertise/>
+            <ProjectIndex projects={projects}/>
+            <Contact profile={profile}/>
+          </div>
+          <div className="about-links">
+            {safeURL(profile.cvUrl) && <a href={safeURL(profile.cvUrl)} download>Download CV</a>}
+            <a href="https://github.com/MomchilTodorov" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in a new tab)">GitHub</a>
+            <a href={`mailto:${profile.email}`}>Email</a>
+          </div>
+        </div>
+      </dialog>
     </>
   );
 }
@@ -24,16 +64,13 @@ export function About({profile}) {
   return (
     <section className="about-section wrap" id="about" aria-labelledby="about-heading">
       <div className="about-heading">
-        <p className="eyebrow">About me</p>
         <h2 id="about-heading">Experience</h2>
         <p className="about-location">Based in {profile.location}</p>
-        <a className="button button-secondary cv-link" href={safeURL(profile.cvUrl)} download>
-          Download CV <span className="filetype">DOCX</span><span aria-hidden="true">↓</span>
-        </a>
       </div>
       <div className="about-content">
         <p className="about-lead">{profile.bio}</p>
         <p>{profile.agencyBio}</p>
+        <p>{profile.experienceYears}+ years with agency teams and {profile.siteCount}+ websites built or supported.</p>
         <p>{profile.focusBio}</p>
         <div className="about-details">
           <div><span>Work</span><strong>{profile.role}</strong><p>{profile.employer}<br/>{profile.experienceStart}</p></div>
@@ -85,19 +122,6 @@ export function Contact({profile}) {
         <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
       </div>
     </section>
-  );
-}
-
-export function Footer({profile}) {
-  return (
-    <footer className="site-footer wrap">
-      <Link className="footer-name" to="/">{profile.name} <span>· WordPress developer</span></Link>
-      <div className="footer-links">
-        <span>{profile.location}</span>
-        <a href="https://github.com/MomchilTodorov" target="_blank" rel="noopener noreferrer" aria-label="Momchil Todorov on GitHub (opens in a new tab)">GitHub <span aria-hidden="true">↗</span></a>
-        <Link to="/#top">Back to top ↑</Link>
-      </div>
-    </footer>
   );
 }
 

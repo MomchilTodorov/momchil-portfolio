@@ -49,7 +49,8 @@ try{
   const serverBundle=path.join(root,'.local/entry-server.mjs');
   const {render}=await import(pathToFileURL(serverBundle).href+'?verify='+Date.now());
   const html=render('/',initial);
-  assert.ok(html.includes('I build WordPress'));
+  assert.ok(html.includes('id="gallery-heading">Selected work'));
+  assert.ok(html.includes(initial.profile.name));
   assert.ok(render('/work/ligre/',edited).includes('CMS EDIT IN REACT'));
   assert.ok(!safeJSON({text:'</script><script>alert(1)</script>'}).includes('</script>'));
   for(const route of ['index.html',...initial.projects.map(project=>`work/${project.slug}/index.html`),'404.html']){
