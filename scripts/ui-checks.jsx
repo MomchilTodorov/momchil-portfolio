@@ -54,6 +54,16 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     assert.equal(currentProject(),'LIGRE Coffee Equipment');
     await click(galleryButton('Next'));
     assert.equal(currentProject(),'Walhalla Weine');
+    await click(document.querySelector('.gallery-current'));
+    assert.equal(window.location.pathname,'/work/walhalla/');
+    await act(async()=>{
+      await new Promise(resolve=>{
+        window.addEventListener('popstate',resolve,{once:true});
+        window.history.back();
+      });
+    });
+    assert.equal(window.location.pathname,'/');
+    assert.equal(currentProject(),'Walhalla Weine','Browser Back must restore the gallery selection.');
     await act(async()=>document.querySelector('.gallery-current').dispatchEvent(
       new dom.window.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true,cancelable:true}),
     ));

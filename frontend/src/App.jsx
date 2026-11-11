@@ -1,3 +1,4 @@
+import {useRef,useState} from 'react';
 import {Routes,Route,Link,useLocation,useParams} from 'react-router-dom';
 import {usePortfolio} from './context.jsx';
 import {Header,RouteEffects,PageMeta} from './components/Layout.jsx';
@@ -5,15 +6,20 @@ import {ProjectGallery,ProjectMedia} from './components/Projects.jsx';
 import ProjectLink from './components/ProjectLink.jsx';
 import {safeURL} from './api.js';
 
-function HomePage(){
+function HomePage({gallerySelections}){
   const {data}=usePortfolio();
-  const {state}=useLocation();
+  const {key,state}=useLocation();
+  const [initialProject]=useState(()=>gallerySelections.get(key)??state?.project);
   return (
     <div className="showcase" id="top">
       <PageMeta title={`${data.profile.name} — WordPress & WooCommerce Developer`} description={data.profile.intro}/>
       <Header profile={data.profile} projects={data.projects}/>
       <main id="main" tabIndex={-1}>
-        <ProjectGallery projects={data.projects} initialProject={state?.project}/>
+        <ProjectGallery
+          projects={data.projects}
+          initialProject={initialProject}
+          rememberSelection={slug=>gallerySelections.set(key,slug)}
+        />
       </main>
     </div>
   );
@@ -79,6 +85,7 @@ function NotFound(){return <><PageMeta title="Page not found — Momchil Todorov
 
 export default function App(){
   const {data,status,retry}=usePortfolio();
+  const gallerySelections=useRef(new Map());
   if(!data)return <main id="main" className="case-page wrap"><h1>{status==='error'?'Portfolio unavailable':'Loading portfolio…'}</h1>{status==='error'?<><p>Please try again in a moment.</p><button className="button button-dark" onClick={retry}>Try again</button></>:<p role="status">Loading projects and profile.</p>}</main>;
-  return <><RouteEffects/>{status==='error'&&<div className="refresh-notice wrap" role="status">Couldn’t refresh the portfolio. <button type="button" onClick={retry}>Try again</button></div>}<Routes><Route path="/" element={<HomePage/>}/><Route path="/work/:slug/" element={<ProjectPage/>}/><Route path="*" element={<NotFound/>}/></Routes></>;
+  return <><RouteEffects/>{status==='error'&&<div className="refresh-notice wrap" role="status">Couldn’t refresh the portfolio. <button type="button" onClick={retry}>Try again</button></div>}<Routes><Route path="/" element={<HomePage gallerySelections={gallerySelections.current}/>}/><Route path="/work/:slug/" element={<ProjectPage/>}/><Route path="*" element={<NotFound/>}/></Routes></>;
 }

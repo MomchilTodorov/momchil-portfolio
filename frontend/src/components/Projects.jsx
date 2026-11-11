@@ -1,4 +1,4 @@
-import {useId, useState} from 'react';
+import {useId, useLayoutEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import {safeURL} from '../api.js';
 import ProjectArt from './ProjectArt.jsx';
@@ -42,11 +42,15 @@ function GalleryMotionFilter({id}) {
   );
 }
 
-export function ProjectGallery({projects, initialProject}) {
+export function ProjectGallery({projects, initialProject, rememberSelection}) {
   const filterId = useId();
   const {active, stage, move, onWheel, blocksClick, ...pointerEvents} =
     useGalleryMotion(projects, initialProject);
   const current = projects[active];
+  const selectedSlug = current?.slug;
+  useLayoutEffect(() => {
+    if (selectedSlug) rememberSelection(selectedSlug);
+  }, [selectedSlug, rememberSelection]);
 
   function handleKey(event) {
     if (projects.length < 2 || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
