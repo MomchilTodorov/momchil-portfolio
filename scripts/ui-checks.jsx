@@ -10,6 +10,9 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});
   }
   dom.window.scrollTo=()=>{};
+  const motionPreference=new dom.window.EventTarget();
+  motionPreference.matches=false;
+  dom.window.matchMedia=()=>motionPreference;
   const dialogPrototype = dom.window.HTMLDialogElement.prototype;
   dialogPrototype.showModal ??= function() { this.open = true; };
   dialogPrototype.close ??= function() {
@@ -159,6 +162,14 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     assert.equal(currentProject(),'LIGRE Coffee Equipment');
     await click(galleryButton('Previous'));
     assert.equal(currentProject(),'tzn Digital');
+    await act(frame);
+    assert.equal(stage.hasAttribute('data-moving'),true);
+    await act(async()=>{
+      motionPreference.matches=true;
+      motionPreference.dispatchEvent(new dom.window.Event('change'));
+    });
+    assert.equal(stage.hasAttribute('data-moving'),false,'Enabling reduced motion must end the color split immediately.');
+    assert.equal(Number(centered.style.getPropertyValue('--arc-x')),0,'Enabling reduced motion must settle the active slide.');
     const focusedProject=document.querySelector('.gallery-current');
     focusedProject.focus();
     const anchorErrors=[];

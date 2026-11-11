@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, useState} from 'react';
-import {prefersReducedMotion} from './ProjectLink.jsx';
+import {prefersReducedMotion, reducedMotionQuery} from './ProjectLink.jsx';
 
 const arcStep = .43;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -90,18 +90,19 @@ export default function useGalleryMotion(projects, initialProject) {
     return moving;
   }
 
+  function finishMotion() {
+    cancelAnimationFrame(scene.frame);
+    scene.frame = 0;
+    scene.speed = 0;
+    scene.position = scene.target;
+    scene.cursorX = scene.cursorY = 0;
+    paintCarousel();
+    paintSpeed();
+    paintPointer(1);
+  }
+
   function animate() {
-    if (prefersReducedMotion()) {
-      cancelAnimationFrame(scene.frame);
-      scene.frame = 0;
-      scene.speed = 0;
-      scene.position = scene.target;
-      scene.cursorX = scene.cursorY = 0;
-      paintCarousel();
-      paintSpeed();
-      paintPointer(1);
-      return;
-    }
+    if (prefersReducedMotion()) return finishMotion();
     if (scene.frame) return;
     scene.maxShift = clamp(stage.current.clientWidth * .012, 4, 14);
     let previous;
@@ -143,7 +144,13 @@ export default function useGalleryMotion(projects, initialProject) {
       paintCarousel();
       paintSpeed();
     }
+    const preference = window.matchMedia?.(reducedMotionQuery);
+    const onPreferenceChange = () => {
+      if (preference.matches && element) finishMotion();
+    };
+    preference?.addEventListener?.('change', onPreferenceChange);
     return () => {
+      preference?.removeEventListener?.('change', onPreferenceChange);
       cancelAnimationFrame(scene.frame);
       scene.frame = 0;
     };

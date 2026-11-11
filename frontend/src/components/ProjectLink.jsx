@@ -1,8 +1,10 @@
 import {flushSync} from 'react-dom';
 import {Link, useNavigate} from 'react-router-dom';
 
+export const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
+
 export function prefersReducedMotion() {
-  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  return window.matchMedia?.(reducedMotionQuery)?.matches ?? false;
 }
 
 export default function ProjectLink({to, state, motion, onClick, ...props}) {
