@@ -4,17 +4,25 @@ import {safeURL} from '../api.js';
 import Expertise from './Expertise.jsx';
 import {ProjectIndex} from './Projects.jsx';
 
+function getFragmentId(hash) {
+  const fragment = hash.slice(1);
+  try {
+    return decodeURIComponent(fragment);
+  } catch {
+    // A malformed escape can still be part of a literal element ID.
+    return fragment;
+  }
+}
+
 export function Header({profile, projects}) {
   const panel = useRef(null);
   const trigger = useRef(null);
   const {hash} = useLocation();
 
   useEffect(() => {
-    if (!['#about', '#contact', '#expertise'].includes(hash)) return;
+    if (!['about', 'contact', 'expertise'].includes(getFragmentId(hash))) return;
     const dialog = panel.current;
     if (!dialog.open) dialog.showModal();
-    const frame = requestAnimationFrame(() => dialog.querySelector(hash)?.scrollIntoView());
-    return () => cancelAnimationFrame(frame);
   }, [hash]);
 
   return (
@@ -134,13 +142,7 @@ export function RouteEffects() {
       previousPathname.current = pathname;
     }
     if (hash) {
-      const fragment = hash.slice(1);
-      let id = fragment;
-      try {
-        id = decodeURIComponent(fragment);
-      } catch {
-        // A malformed escape can still be part of a literal element ID.
-      }
+      const id = getFragmentId(hash);
       const frame = requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());
       return () => cancelAnimationFrame(frame);
     }

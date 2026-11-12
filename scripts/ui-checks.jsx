@@ -182,6 +182,16 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     assert.deepEqual(anchorErrors,[],'A malformed URL fragment must not throw.');
     assert.equal(scrollTarget,'work','An encoded URL fragment must still scroll to its target.');
     assert.equal(document.activeElement,focusedProject,'Section navigation must preserve keyboard focus on the same page.');
+    scrollTarget=undefined;
+    await act(async()=>{
+      window.history.pushState({},'','#%63ontact');
+      window.dispatchEvent(new dom.window.PopStateEvent('popstate'));
+    });
+    await frame();
+    const aboutDialog=document.querySelector('.about-dialog');
+    assert.equal(aboutDialog.open,true,'An encoded contact link must open the About panel.');
+    assert.equal(scrollTarget,'contact');
+    await click(aboutDialog.querySelector('.about-bar button'));
     await click(galleryButton('Next'));
     assert.equal(currentProject(),'LIGRE Coffee Equipment','Advancing from the last slide must wrap to the first.');
     await click(document.querySelector('.gallery-slide[data-position="0"]'));
