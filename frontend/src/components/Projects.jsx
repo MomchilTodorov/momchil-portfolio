@@ -12,15 +12,23 @@ const covers = {
 };
 
 export function ProjectMedia({project, eager = false}) {
+  const [failedImages, setFailedImages] = useState(() => new Set());
   const suppliedImage = safeURL(project.image);
-  const image = suppliedImage || covers[project.slug];
+  const image = [suppliedImage, covers[project.slug]].find(url => url && !failedImages.has(url));
 
   if (!image) return <ProjectArt visual={project.visual}/>;
 
   return (
     <div className="project-cover" aria-hidden="true">
-      <img src={image} alt="" loading={eager ? 'eager' : 'lazy'} draggable={false}/>
-      {!suppliedImage && <span className="project-cover-title">{project.title}</span>}
+      <img
+        key={image}
+        src={image}
+        alt=""
+        loading={eager ? 'eager' : 'lazy'}
+        draggable={false}
+        onError={() => setFailedImages(failed => new Set([...failed, image]))}
+      />
+      {image !== suppliedImage && <span className="project-cover-title">{project.title}</span>}
     </div>
   );
 }

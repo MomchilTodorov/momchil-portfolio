@@ -196,6 +196,10 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     assert.equal(currentProject(),'LIGRE Coffee Equipment','Advancing from the last slide must wrap to the first.');
     await click(document.querySelector('.gallery-slide[data-position="0"]'));
     assert.equal(window.location.pathname,'/work/ligre/');
+    const caseCover=document.querySelector('.case-media img');
+    assert.ok(caseCover,'LIGRE should initially show its project photo.');
+    await act(async()=>caseCover.dispatchEvent(new dom.window.Event('error')));
+    assert.ok(document.querySelector('.case-media .art-ligre'),'A failed project photo should fall back to the illustration.');
     assert.equal(document.querySelector('.case-body script'),null);
     assert.equal(document.querySelector('.case-body [onerror]'),null);
     await act(async()=>{window.history.pushState({},'', '/work/not-a-project/');window.dispatchEvent(new dom.window.PopStateEvent('popstate'));});
