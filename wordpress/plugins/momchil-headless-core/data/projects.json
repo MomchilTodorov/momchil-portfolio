@@ -46,5 +46,32 @@
     "outcome": "Delivered responsive pages and interactive functionality, with analytics scripts integrated around user consent.",
     "stack": ["WordPress", "PHP", "JavaScript", "AJAX", "GSAP", "GA4"],
     "url": "https://tzn-digital.com/"
+  },
+  {
+    "slug": "ptm",
+    "title": "PTM Mechatronics",
+    "category": "WooCommerce / Product configuration",
+    "categories": [
+      "woocommerce",
+      "integrations"
+    ],
+    "summary": "A guided configurator for industrial agitators and pneumatic motors.",
+    "context": "I built Forminator questionnaires for PTM’s industrial agitators and pneumatic motors. Customers enter their application requirements to configure a product or request a quote for an agitator with custom container dimensions.",
+    "contributions": [
+      "Built the multi-step questionnaire with Forminator and added conditional navigation so customers could skip questions that did not apply.",
+      "Matched standard agitator configurations against a CSV lookup table and mapped motor selections directly to product SKUs.",
+      "Used those SKUs to select the corresponding WooCommerce bundle items and quantities, then calculated the total from WooCommerce prices via AJAX."
+    ],
+    "outcome": "When the configurator found a match, customers could review the components and price and add the bundle to their cart. The custom container questionnaire collected technical requirements for a quote request.",
+    "stack": [
+      "WordPress",
+      "WooCommerce",
+      "Forminator",
+      "PHP",
+      "JavaScript",
+      "AJAX",
+      "ACF"
+    ],
+    "url": "https://ptm-mechatronics.com/en/shop/"
   }
 ]

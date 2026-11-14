@@ -13,7 +13,8 @@ let report;
 try{
   const initial=await readPortfolio(runtime);
   assert.equal(initial.schemaVersion,2);
-  assert.equal(initial.projects.length,4);
+  const seedProjects=JSON.parse(await readFile(path.join(root,'wordpress/plugins/momchil-headless-core/data/projects.json'),'utf8'));
+  assert.deepEqual(initial.projects.map(project=>project.slug),seedProjects.map(project=>project.slug));
   const checked=await runtime.playground.run({code:`<?php
     require '/wordpress/wp-load.php';
     foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(WP_PLUGIN_DIR.'/momchil-headless-core')) as $file) if($file->isFile()&&$file->getExtension()==='php') token_get_all(file_get_contents($file->getPathname()),TOKEN_PARSE);
@@ -30,7 +31,7 @@ try{
     update_option('mt_headless_verify_marker','persists across restarts');
     wp_delete_post($draft,true);wp_delete_post($protected,true);
     $user=get_user_by('login','admin');
-    echo wp_json_encode(['wordpress'=>get_bloginfo('version'),'private_excluded'=>$visible===4,'protected_detail_status'=>$missing->get_status(),'anonymous_write_status'=>$write->get_status(),'repeat_import'=>\\Momchil\\Headless\\Portfolio::import_cv_projects(),'default_local_login'=>wp_check_password('password',$user->user_pass,$user->ID)]);
+    echo wp_json_encode(['wordpress'=>get_bloginfo('version'),'private_excluded'=>$visible===count($projects),'protected_detail_status'=>$missing->get_status(),'anonymous_write_status'=>$write->get_status(),'repeat_import'=>\\Momchil\\Headless\\Portfolio::import_cv_projects(),'default_local_login'=>wp_check_password('password',$user->user_pass,$user->ID)]);
   `});
   const backend=JSON.parse(checked.text);
   assert.equal(backend.private_excluded,true);
@@ -67,7 +68,7 @@ try{
   const persistence=await runtime.playground.run({code:`<?php require '/wordpress/wp-load.php'; echo wp_json_encode(['marker'=>get_option('mt_headless_verify_marker'),'summary'=>\\Momchil\\Headless\\Portfolio::public_projects()[0]['summary']]);`});
   assert.equal(JSON.parse(persistence.text).marker,'persists across restarts');
   assert.equal(JSON.parse(persistence.text).summary,'CMS EDIT IN REACT');
-  report={backend,standalone_react:true,php_theme_used_by_frontend:false,react_dom:ui,persistent_cms:true,prerendered_routes:6,bootstrap_script_escaping:true,public_content_sanitization:true,browser_visual_qa:'Not part of this automated command. Check desktop and mobile layouts separately in a browser.'};
+  report={backend,standalone_react:true,php_theme_used_by_frontend:false,react_dom:ui,persistent_cms:true,prerendered_routes:initial.projects.length+2,bootstrap_script_escaping:true,public_content_sanitization:true,browser_visual_qa:'Not part of this automated command. Check desktop and mobile layouts separately in a browser.'};
   await writeFile(path.join(root,'.local/verification.json'),JSON.stringify(report,null,2));
   console.log(JSON.stringify(report,null,2));
 }finally{

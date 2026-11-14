@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "profile": {
     "name": "Momchil Todorov",
-    "role": "Senior WordPress & WooCommerce developer",
+    "role": "WordPress & WooCommerce developer",
     "location": "Varna, Bulgaria",
     "email": "momchil.v.todorov@gmail.com",
     "experienceYears": 5,
@@ -109,6 +109,31 @@
         "GA4"
       ],
       "contentHTML": "<h2 class=\"wp-block-heading\">Project context</h2><p class=\"wp-block-paragraph\">The project combined responsive development with interactive elements, third-party services and consent-aware analytics.</p><h2 class=\"wp-block-heading\">My contribution</h2><ul class=\"wp-block-list\"><li>Built the corporate WordPress site and responsive homepage from supplied designs.</li><li>Delivered AJAX filters, GSAP animations, third-party widgets and video integrations.</li><li>Implemented consent-aware GA4 and marketing scripts.</li><li>Contributed to Core Web Vitals improvements.</li></ul><h2 class=\"wp-block-heading\">Delivered functionality</h2><p class=\"wp-block-paragraph\">Delivered responsive pages and interactive functionality, with analytics scripts integrated around user consent.</p>",
+      "image": null
+    },
+    {
+      "id": 8,
+      "slug": "ptm",
+      "title": "PTM Mechatronics",
+      "summary": "A guided configurator for industrial agitators and pneumatic motors.",
+      "path": "/work/ptm/",
+      "categories": [
+        "integrations",
+        "woocommerce"
+      ],
+      "categoryLabel": "WooCommerce / Product configuration",
+      "visual": "ptm",
+      "clientUrl": "https://ptm-mechatronics.com/en/shop/",
+      "stack": [
+        "WordPress",
+        "WooCommerce",
+        "Forminator",
+        "PHP",
+        "JavaScript",
+        "AJAX",
+        "ACF"
+      ],
+      "contentHTML": "<h2 class=\"wp-block-heading\">Project context</h2><p class=\"wp-block-paragraph\">I built Forminator questionnaires for PTM’s industrial agitators and pneumatic motors. Customers enter their application requirements to configure a product or request a quote for an agitator with custom container dimensions.</p><h2 class=\"wp-block-heading\">My contribution</h2><ul class=\"wp-block-list\"><li>Built the multi-step questionnaire with Forminator and added conditional navigation so customers could skip questions that did not apply.</li><li>Matched standard agitator configurations against a CSV lookup table and mapped motor selections directly to product SKUs.</li><li>Used those SKUs to select the corresponding WooCommerce bundle items and quantities, then calculated the total from WooCommerce prices via AJAX.</li></ul><h2 class=\"wp-block-heading\">Delivered functionality</h2><p class=\"wp-block-paragraph\">When the configurator found a match, customers could review the components and price and add the bundle to their cart. The custom container questionnaire collected technical requirements for a quote request.</p>",
       "image": null
     }
   ]

@@ -13,10 +13,10 @@ Homepage and case studies               Profile, projects and editing
 - `frontend/src/`: all public page layouts, navigation, project filtering, contact interactions, loading and error states.
 - `wordpress/plugins/momchil-headless-core/`: the WordPress content model, profile settings, CV project importer and public REST API.
 - `scripts/`: local development, CMS content export, React prerendering and verification.
-- `dist/`: prebuilt public frontend, including the homepage, four case study pages and a 404 page.
+- `dist/`: prebuilt public frontend, including the homepage, five case study pages and a 404 page.
 - `install/momchil-headless-core.zip`: the ready-to-install WordPress plugin in the delivered package.
 
-React is bundled independently. The frontend does not use `wp.element`, a WordPress-rendered page, or an iframe. The public case study routes are `/work/ligre/`, `/work/walhalla/`, `/work/elfbar/` and `/work/tzn/`.
+React is bundled independently. The frontend does not use `wp.element`, a WordPress-rendered page, or an iframe. The public case study routes are `/work/ligre/`, `/work/walhalla/`, `/work/elfbar/`, `/work/tzn/` and `/work/ptm/`.
 
 ## Start locally
 
@@ -46,18 +46,18 @@ This starts both applications:
 
 These are the disposable local development credentials created by WordPress Playground, not credentials for an existing account. Use separate credentials when installing WordPress for hosting.
 
-The first run downloads the pinned WordPress 7.1.4 development runtime and imports the four case studies from the supplied CV. Later runs keep your content edits in `.local/wordpress/`. The importer skips existing project slugs and never overwrites their edited content. The cache and development data stay inside the project. Stop both applications with Ctrl+C.
+The first run downloads the pinned WordPress 7.1.4 development runtime and imports the bundled case studies. Later runs keep your content edits in `.local/wordpress/`. The importer skips existing project slugs and never overwrites their edited content. The cache and development data stay inside the project. Stop both applications with Ctrl+C.
 
 ## Edit content in WordPress
 
 - **Portfolio projects**: title, summary excerpt, full case study content, technologies, categories, client URL and optional featured image.
 - **Settings → Portfolio profile**: name, role, location, email, bio, experience figures and CV URL.
 - **Settings → Portfolio profile → React frontend URL**: the address used by the WordPress admin’s View project links.
-- **Tools → Portfolio setup**: explicitly import the four CV projects if installing the plugin manually.
+- **Tools → Portfolio setup**: explicitly import the bundled case studies if installing the plugin manually.
 
 Reload the React site to see the latest CMS data. Homepage profile fields and case study content come from the WordPress API. General section headings and the design live in the React components.
 
-The project descriptions and career figures come from the supplied CV. The existing DOCX CV is available through the frontend’s download link. Project diagrams are original technical illustrations; the portfolio credits the agency work and notes that the live client sites may have changed.
+The case studies draw on the CV and project materials. The existing DOCX CV is available through the frontend’s download link. Project diagrams are original technical illustrations; the portfolio credits the agency work and notes that the live client sites may have changed.
 
 ## Use an existing WordPress installation
 

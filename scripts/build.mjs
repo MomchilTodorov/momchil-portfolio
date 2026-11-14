@@ -7,6 +7,10 @@ import {root} from './runtime.mjs';
 
 const data=JSON.parse(await readFile(path.join(root,'frontend/public/content/portfolio.json'),'utf8').catch(()=>{throw new Error('Run pnpm content:sync once to export the WordPress content before building.');}));
 await viteBuild({configFile:path.join(root,'vite.config.mjs')});
+if (process.argv.includes('--cloudflare')) {
+  // Pages serves the generated routes and 404.html directly. Use the bundled public data on Direct Upload.
+  await writeFile(path.join(root, 'dist/_redirects'), '/api/momchil/v2/portfolio /content/portfolio.json 200\n');
+}
 await mkdir(path.join(root,'.local'),{recursive:true});
 const serverBundle=path.join(root,'.local/entry-server.mjs');
 await esbuild({entryPoints:[path.join(root,'frontend/src/entry-server.jsx')],outfile:serverBundle,bundle:true,platform:'node',format:'esm',packages:'external',jsx:'automatic',define:{'import.meta.env.VITE_WP_API_BASE':JSON.stringify('/api/')}});

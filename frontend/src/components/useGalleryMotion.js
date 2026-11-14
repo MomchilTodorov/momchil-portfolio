@@ -1,7 +1,10 @@
 import {useLayoutEffect, useRef, useState} from 'react';
 import {prefersReducedMotion, reducedMotionQuery} from './ProjectLink.jsx';
 
-const arcStep = .43;
+const frameLength = 1000 / 60;
+const travelEasing = .085;
+const entranceDuration = 1750;
+const chromaLimit = .018;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const indexAt = (position, count) => ((Math.round(position) % count) + count) % count;
 
@@ -16,18 +19,20 @@ function stepWidth(element) {
   return Math.max(220, width * (width <= 720 ? .785 : .535));
 }
 
-export default function useGalleryMotion(projects, initialProject) {
+export default function useGalleryMotion(projects, initialProject, waitingForLoader, indicator) {
   const [activeSlug, setActiveSlug] = useState();
   const active = Math.max(0, projects.findIndex(project => project.slug === activeSlug));
   const projectOrder = projects.map(project => project.slug).join('/');
   const stage = useRef(null);
   const motion = useRef({
     position: 0, target: 0, speed: 0, frame: 0, activeIndex: 0, followPosition: false,
-    pointer: null, blockClickUntil: 0, cameraX: 0, cameraY: 0, cursorX: 0, cursorY: 0,
-    shift: 0,
+    pointer: null, touchTravel: false, blockClickUntil: 0, cameraX: 0, cameraY: 0, cursorX: 0, cursorY: 0,
+    shift: 0, stretch: 0,
+    entrance: 1, entranceStarted: null, hasShownGallery: false,
   });
   const scene = motion.current;
   const count = projects.length;
+  const arcStep = Math.PI / Math.max(count, 6);
 
   function updateActive(index) {
     if (scene.activeIndex === index) return;
@@ -36,37 +41,51 @@ export default function useGalleryMotion(projects, initialProject) {
   }
 
   function paintCarousel() {
-    const fadeEdge = Math.min(count / 2, 1.95);
+    const fadeEdge = count / 2;
     scene.slides.forEach((element, index) => {
       const offset = galleryOffset(index, scene.position, count);
       const distance = Math.abs(offset);
       const angle = offset * arcStep;
-      const depth = (1 - Math.cos(angle)) / (1 - Math.cos(arcStep));
-      const opacity = count < 3 ? 1 : clamp((fadeEdge - distance) / (fadeEdge - 1), 0, 1);
-      element.style.setProperty('--arc-x', Math.sin(angle) / Math.sin(arcStep));
-      element.style.setProperty('--arc-yaw', `${offset * 21}deg`);
-      element.style.setProperty('--arc-depth', Math.min(depth, 2.2));
-      element.style.setProperty('--arc-opacity', opacity);
-      element.style.setProperty('--arc-light', 1 - Math.min(distance, 1) * .3);
+      // The radius is measured in slide steps so the same arc scales with the viewport.
+      const arcX = Math.sin(angle) / arcStep;
+      const depth = (1 - Math.cos(angle)) / arcStep;
+      const scale = 1 - .35 * Math.min(1, Math.abs(angle) / (Math.PI / 2)) * scene.entrance;
+      const opacity = count < 3 ? 1 : clamp((fadeEdge - distance) / (fadeEdge * .15), 0, 1);
+      element.style.setProperty('--arc-x', offset + (arcX - offset) * scene.entrance);
+      element.style.setProperty('--arc-yaw', `${angle * .8 * scene.entrance}rad`);
+      element.style.setProperty('--arc-depth', depth * scene.entrance);
+      element.style.setProperty('--arc-scale', scale);
+      element.style.setProperty('--arc-opacity', opacity * scene.entrance);
+      element.style.setProperty('--arc-light', .55 + .45 * scale);
       element.style.zIndex = Math.round(100 / (1 + distance));
     });
+    stage.current?.style.setProperty('--entrance-scale', .75 + .25 * scene.entrance);
+    if (indicator.current) {
+      const progress = count > 2
+        ? ((scene.position % count + count) % count) / count
+        : scene.position / Math.max(1, count - 1);
+      indicator.current.style.setProperty('--gallery-progress', progress);
+      indicator.current.setAttribute('aria-valuenow', Math.round(progress * 100));
+    }
     if (scene.followPosition && count) updateActive(indexAt(scene.position, count));
   }
 
   function paintSpeed() {
-    const strength = clamp(scene.speed / .11, -1, 1);
-    const shift = Math.round(strength * scene.maxShift * 4) / 4;
-    if (shift === scene.shift) return;
+    const velocity = clamp(scene.speed, -70, 70);
+    const speed = Math.abs(velocity);
+    const chroma = clamp(velocity * .0022, -chromaLimit, chromaLimit);
+    // The shader's offset is a fraction of the rendered cover width.
+    const shift = Math.abs(chroma) > .0001 ? Math.round(chroma * scene.cardWidth * 100) / 100 : 0;
+    const stretch = Math.min(speed * .001, .022);
+    if (shift === scene.shift && stretch === scene.stretch) return;
     scene.shift = shift;
+    scene.stretch = stretch;
     const element = stage.current;
-    const magnitude = Math.abs(shift) / scene.maxShift;
     element.toggleAttribute('data-moving', shift !== 0);
-    element.style.setProperty('--motion-stretch', 1 + magnitude * .055);
-    element.style.setProperty('--motion-squash', 1 - magnitude * .032);
-    element.style.setProperty('--motion-skew', `${strength * 1.7}deg`);
+    element.style.setProperty('--motion-stretch', 1 + stretch);
+    element.style.setProperty('--motion-squash', 1 - stretch * .6);
     scene.red.setAttribute('dx', shift);
     scene.blue.setAttribute('dx', -shift);
-    scene.blur.setAttribute('stdDeviation', `${magnitude * .8} 0`);
   }
 
   function paintPointer(factor) {
@@ -94,6 +113,7 @@ export default function useGalleryMotion(projects, initialProject) {
     cancelAnimationFrame(scene.frame);
     scene.frame = 0;
     scene.speed = 0;
+    scene.entrance = 1;
     scene.position = scene.target;
     scene.cursorX = scene.cursorY = 0;
     paintCarousel();
@@ -104,22 +124,32 @@ export default function useGalleryMotion(projects, initialProject) {
   function animate() {
     if (prefersReducedMotion()) return finishMotion();
     if (scene.frame) return;
-    scene.maxShift = clamp(stage.current.clientWidth * .012, 4, 14);
+    scene.step = stepWidth(stage.current);
+    scene.cardWidth = scene.slides[0]?.offsetWidth || scene.step;
     let previous;
     function tick(now) {
-      const elapsed = previous == null ? 16 : clamp(now - previous, 1, 40);
+      const elapsed = previous == null ? frameLength : clamp(now - previous, 1, 50);
       previous = now;
-      const easing = 1 - Math.exp(-elapsed / 110);
+      const pointerEasing = 1 - (1 - travelEasing) ** (elapsed / frameLength);
+      const entrance = scene.entrance;
+      if (entrance < 1) {
+        scene.entranceStarted ??= now;
+        const progress = (now - scene.entranceStarted) / entranceDuration;
+        scene.entrance = progress >= 1 ? 1 : 1 - 2 ** (-10 * progress);
+      }
       const position = scene.position;
-      scene.position += (scene.target - position) * easing;
+      // Keep swipes responsive when a phone renders fewer frames.
+      const slideEasing = scene.touchTravel ? pointerEasing : travelEasing;
+      scene.position += (scene.target - position) * slideEasing;
       if (Math.abs(scene.target - scene.position) < .0005) scene.position = scene.target;
-      const velocity = (scene.position - position) * 16 / elapsed;
-      scene.speed += (velocity - scene.speed) * (1 - Math.exp(-elapsed / 35));
-      if (Math.abs(scene.speed) < .0007) scene.speed = 0;
-      if (scene.position !== position) paintCarousel();
+      const pixels = (scene.position - position) * scene.step;
+      const velocity = scene.touchTravel ? pixels * frameLength / elapsed : pixels;
+      scene.speed += (velocity - scene.speed) * slideEasing;
+      if (Math.abs(scene.speed) < .01) scene.speed = 0;
+      if (scene.position !== position || scene.entrance !== entrance) paintCarousel();
       paintSpeed();
-      const pointerMoving = paintPointer(easing);
-      scene.frame = pointerMoving || scene.position !== scene.target || scene.speed
+      const pointerMoving = paintPointer(pointerEasing);
+      scene.frame = pointerMoving || scene.position !== scene.target || scene.speed || scene.entrance < 1
         ? requestAnimationFrame(tick) : 0;
     }
     scene.frame = requestAnimationFrame(tick);
@@ -132,17 +162,23 @@ export default function useGalleryMotion(projects, initialProject) {
     scene.slides = [...(element?.querySelectorAll('.gallery-slide') ?? [])];
     scene.red = element?.querySelector('[data-shift="red"]');
     scene.blue = element?.querySelector('[data-shift="blue"]');
-    scene.blur = element?.querySelector('feGaussianBlur');
-    scene.maxShift = clamp((element?.clientWidth ?? 0) * .012, 4, 14);
+    scene.step = element ? stepWidth(element) : 0;
+    scene.cardWidth = scene.slides[0]?.offsetWidth || scene.step;
+    const playEntrance = element && !waitingForLoader && !scene.hasShownGallery && !initialProject && !prefersReducedMotion();
+    scene.entrance = playEntrance ? 0 : 1;
+    scene.entranceStarted = null;
     scene.position = scene.target = scene.activeIndex = index;
     scene.followPosition = false;
     scene.speed = 0;
     scene.pointer = null;
+    scene.touchTravel = false;
     if (projects[index]) setActiveSlug(projects[index].slug);
     if (element) {
+      if (!waitingForLoader) scene.hasShownGallery = true;
       element.removeAttribute('data-dragging');
       paintCarousel();
       paintSpeed();
+      if (playEntrance) animate();
     }
     const preference = window.matchMedia?.(reducedMotionQuery);
     const onPreferenceChange = () => {
@@ -154,10 +190,11 @@ export default function useGalleryMotion(projects, initialProject) {
       cancelAnimationFrame(scene.frame);
       scene.frame = 0;
     };
-  }, [projectOrder, initialProject]);
+  }, [projectOrder, initialProject, waitingForLoader]);
 
-  function travelTo(position) {
+  function travelTo(position, touch = false) {
     scene.followPosition = true;
+    scene.touchTravel = touch;
     scene.target = count < 3 ? clamp(position, 0, count - 1) : position;
     animate();
   }
@@ -166,6 +203,7 @@ export default function useGalleryMotion(projects, initialProject) {
     const position = Math.round(scene.target) + direction;
     const index = indexAt(position, count);
     scene.followPosition = false;
+    scene.touchTravel = false;
     scene.target = count < 3 ? index : position;
     updateActive(index);
     animate();
@@ -178,7 +216,7 @@ export default function useGalleryMotion(projects, initialProject) {
     if (!delta) return;
     const element = stage.current;
     const pixels = delta * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientWidth : 1);
-    const distance = clamp(pixels / stepWidth(element), -2, 2);
+    const distance = clamp(pixels * .6 / stepWidth(element), -2, 2);
     travelTo(scene.target + distance);
   }
 
@@ -188,6 +226,7 @@ export default function useGalleryMotion(projects, initialProject) {
     scene.pointer = {
       id: event.pointerId, x: event.clientX, y: event.clientY,
       step: stepWidth(event.currentTarget), start: scene.position, dragging: false,
+      touch: event.pointerType === 'touch',
     };
   }
 
@@ -205,13 +244,15 @@ export default function useGalleryMotion(projects, initialProject) {
     if (pointer.id !== event.pointerId) return;
     const dx = event.clientX - pointer.x;
     if (!pointer.dragging) {
-      if (Math.abs(dx) < 6 || Math.abs(dx) <= Math.abs(event.clientY - pointer.y)) return;
+      const horizontal = Math.abs(dx);
+      const vertical = Math.abs(event.clientY - pointer.y);
+      if (pointer.touch ? Math.max(horizontal, vertical) < 6 : horizontal < 6 || horizontal <= vertical) return;
       pointer.dragging = true;
       scene.cursorX = scene.cursorY = 0;
       element.dataset.dragging = 'true';
       element.setPointerCapture?.(event.pointerId);
     }
-    travelTo(pointer.start - dx / pointer.step);
+    travelTo(pointer.start - dx * (pointer.touch ? 3 : 1.5) / pointer.step, pointer.touch);
   }
 
   function endPointer(event) {
@@ -229,11 +270,16 @@ export default function useGalleryMotion(projects, initialProject) {
     animate();
   }
 
+  function onLostPointerCapture(event) {
+    // Touch starts captured by the card and then transfers capture to the stage.
+    if (event.target === event.currentTarget) endPointer(event);
+  }
+
   return {
     active, stage, move, onWheel, onPointerDown, onPointerMove, onPointerLeave,
     onPointerUp: endPointer,
     onPointerCancel: endPointer,
-    onLostPointerCapture: endPointer,
+    onLostPointerCapture,
     blocksClick: () => performance.now() < scene.blockClickUntil,
   };
 }

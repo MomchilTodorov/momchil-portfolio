@@ -88,7 +88,7 @@ section[id] { scroll-margin-top: 28px; }
 .about-location { margin-top: 15px; color: var(--muted); font-size: 14px; }
 .about-content > p { color: var(--muted); font-size: 15px; line-height: 1.85; margin-bottom: 17px; }
 .about-content > .about-lead { color: var(--ink); font-size: 19px; line-height: 1.7; }
-.about-details { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; border-top: 1px solid var(--line); padding-top: 23px; margin-top: 27px; }
+.about-details { border-top: 1px solid var(--line); padding-top: 23px; margin-top: 27px; }
 .about-details > div > span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 9px; }
 .about-details strong { display: block; font-size: 14px; font-weight: 500; line-height: 1.6; }
 .about-details p { color: var(--muted); font-size: 13px; line-height: 1.8; margin-top: 6px; }
@@ -135,6 +135,9 @@ section[id] { scroll-margin-top: 28px; }
 .art-bottom > span:first-child { min-width: 0; }
 .art-arrow { font: 21px var(--sans); }
 .art-ligre { background: #eaf2ed; color: #254f3b; }
+.art-ptm { background: #e7edf4; color: #233b54; }
+.art-ptm .flow-node { border-color: #8a9db3; }
+.art-ptm .flow-path { background: #8a9db3; }
 .ligre-flow { display: flex; align-items: center; justify-content: center; padding: 28px 0; }
 .flow-node { flex: 0 1 130px; min-width: 0; padding: 19px 7px; border: 1px solid #9ab8a5; text-align: center; font: 10px/1.6 var(--mono); overflow-wrap: anywhere; }
 .flow-node > span { display: block; font: 27px var(--sans); margin-bottom: 9px; }
@@ -189,7 +192,6 @@ section[id] { scroll-margin-top: 28px; }
   .about-section { grid-template-columns: 1fr; gap: 27px; padding-block: 45px; }
   .about-content > .about-lead { font-size: 18px; }
   .about-content > p { font-size: 15px; }
-  .about-details { gap: 22px; }
   .contact-panel { padding: 25px; gap: 22px; }
   .email-link { font-size: 18px; }
   .contact-description { font-size: 14px; }
@@ -217,7 +219,6 @@ section[id] { scroll-margin-top: 28px; }
   .project-grid { grid-template-columns: minmax(0, 1fr); }
   .filters { gap: 4px; }
   .filter { padding-inline: 9px; font-size: 12px; }
-  .about-details { grid-template-columns: 1fr; }
   .contact-panel { padding: 22px; }
   .email-link { font-size: 16px; }
   .case-page h1 { font-size: 34px; }

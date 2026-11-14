@@ -1,20 +1,40 @@
-import {useId, useLayoutEffect, useState} from 'react';
+import {useId, useLayoutEffect, useRef, useState} from 'react';
 import {Link} from 'react-router-dom';
 import {safeURL} from '../api.js';
 import ProjectArt from './ProjectArt.jsx';
+import {tznFilmRecording, tznHomepage} from './TznCaseMedia.jsx';
+import {ligreHomeRecording} from './LigreCaseMedia.jsx';
+import {elfbarStorefrontRecording} from './ElfbarCaseMedia.jsx';
+import {walhallaHomeRecording} from './WalhallaCaseMedia.jsx';
+import {ptmCover, ptmMotorWalkthrough} from './PtmCaseMedia.jsx';
+import AutoplayVideo from './AutoplayVideo.jsx';
 import ProjectLink from './ProjectLink.jsx';
+import GalleryLoader from './GalleryLoader.jsx';
 import useGalleryMotion, {galleryOffset} from './useGalleryMotion.js';
 
 // Published brand photography from ligre.com and walhalla-weine.ch.
 const covers = {
   ligre: '/assets/work/ligre.webp',
   walhalla: '/assets/work/walhalla.png',
+  tzn: tznHomepage,
+  ptm: ptmCover,
 };
 
-export function ProjectMedia({project, eager = false}) {
+const galleryRecordings = {
+  ligre: ligreHomeRecording,
+  walhalla: walhallaHomeRecording,
+  elfbar: elfbarStorefrontRecording,
+  tzn: tznFilmRecording,
+  ptm: ptmMotorWalkthrough,
+};
+
+export function ProjectMedia({project, eager = false, gallery = false, animate = false}) {
   const [failedImages, setFailedImages] = useState(() => new Set());
   const suppliedImage = safeURL(project.image);
-  const image = [suppliedImage, covers[project.slug]].find(url => url && !failedImages.has(url));
+  const recording = gallery && galleryRecordings[project.slug];
+  const poster = recording && `${recording}-poster.webp`;
+  const images = project.slug === 'tzn' ? [poster, suppliedImage] : [suppliedImage, poster];
+  const image = [...images, covers[project.slug]].find(url => url && !failedImages.has(url));
 
   if (!image) return <ProjectArt visual={project.visual}/>;
 
@@ -28,7 +48,10 @@ export function ProjectMedia({project, eager = false}) {
         draggable={false}
         onError={() => setFailedImages(failed => new Set([...failed, image]))}
       />
-      {image !== suppliedImage && <span className="project-cover-title">{project.title}</span>}
+      {animate && recording && <AutoplayVideo src={`${recording}.mp4`} poster={image} playOffscreen/>}
+      {image !== suppliedImage && image !== poster && image !== tznHomepage && image !== ptmCover && (
+        <span className="project-cover-title">{project.title}</span>
+      )}
     </div>
   );
 }
@@ -36,12 +59,14 @@ export function ProjectMedia({project, eager = false}) {
 function GalleryMotionFilter({id}) {
   return (
     <svg width="0" height="0" className="gallery-filters" aria-hidden="true">
-      <filter id={id} x="-12%" y="-5%" width="124%" height="110%" colorInterpolationFilters="sRGB">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="0" edgeMode="duplicate" result="smear"/>
-        <feOffset in="smear" dx="0" data-shift="red"/>
+      <filter id={id} x="-2%" y="0" width="104%" height="100%" colorInterpolationFilters="sRGB">
+        {/* Fill the narrow strip exposed by each offset before selecting that channel. */}
+        <feOffset in="SourceGraphic" dx="0" data-shift="red" result="red-shifted"/>
+        <feComposite in="red-shifted" in2="SourceGraphic" operator="over"/>
         <feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red"/>
-        <feColorMatrix in="smear" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green"/>
-        <feOffset in="smear" dx="0" data-shift="blue"/>
+        <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green"/>
+        <feOffset in="SourceGraphic" dx="0" data-shift="blue" result="blue-shifted"/>
+        <feComposite in="blue-shifted" in2="SourceGraphic" operator="over"/>
         <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue"/>
         <feComposite in="red" in2="green" operator="arithmetic" k2="1" k3="1" result="red-green"/>
         <feComposite in="red-green" in2="blue" operator="arithmetic" k2="1" k3="1"/>
@@ -50,10 +75,17 @@ function GalleryMotionFilter({id}) {
   );
 }
 
-export function ProjectGallery({projects, initialProject, rememberSelection}) {
+const progressArc = 'M4 17.4 A100 100 0 0 1 104 17.4';
+
+export function ProjectGallery({projects, initialProject, playLoader, rememberSelection}) {
   const filterId = useId();
+  const indicator = useRef(null);
+  const [loaderPhase, setLoaderPhase] = useState('idle');
+  const waitingForLoader = playLoader && (loaderPhase === 'idle' || loaderPhase === 'loading');
+  const loading = playLoader && loaderPhase === 'loading';
+  const revealing = playLoader && loaderPhase === 'revealing';
   const {active, stage, move, onWheel, blocksClick, ...pointerEvents} =
-    useGalleryMotion(projects, initialProject);
+    useGalleryMotion(projects, initialProject, waitingForLoader, indicator);
   const current = projects[active];
   const selectedSlug = current?.slug;
   useLayoutEffect(() => {
@@ -75,8 +107,11 @@ export function ProjectGallery({projects, initialProject, rememberSelection}) {
       className="project-gallery"
       id="work"
       aria-labelledby="gallery-heading"
-      onKeyDown={handleKey}
-      onWheel={onWheel}
+      data-starting={playLoader && current && loaderPhase === 'idle' ? '' : undefined}
+      data-loading={loading ? '' : undefined}
+      data-revealing={revealing ? '' : undefined}
+      onKeyDown={waitingForLoader ? undefined : handleKey}
+      onWheel={waitingForLoader ? undefined : onWheel}
     >
       <h2 className="sr-only" id="gallery-heading">Selected work</h2>
       {current ? (
@@ -100,7 +135,6 @@ export function ProjectGallery({projects, initialProject, rememberSelection}) {
                   className="gallery-slide"
                   data-position={position}
                   data-nearby={nearby}
-                  style={{'--slide-offset': position}}
                   aria-hidden={nearby ? undefined : true}
                   aria-label={`Read the ${project.title} case study`}
                   tabIndex={position ? -1 : 0}
@@ -110,23 +144,36 @@ export function ProjectGallery({projects, initialProject, rememberSelection}) {
                 >
                   <div className="gallery-surface">
                     <div className="gallery-media">
-                      <ProjectMedia project={project} eager={nearby}/>
+                      <ProjectMedia project={project} eager={nearby} gallery animate={!waitingForLoader}/>
                     </div>
                   </div>
                 </ProjectLink>
               );
             })}
           </div>
+          <div
+            className="gallery-progress"
+            ref={indicator}
+            role="progressbar"
+            aria-label="Gallery progress"
+            aria-hidden={loading || undefined}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={0}
+          >
+            <svg viewBox="0 0 108 21.4" width="108" height="21.4" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <line className="gallery-progress-loading" x1="4" x2="104" y1="17.4" y2="17.4"/>
+              <g className="gallery-progress-arc">
+                <path className="gallery-progress-track" d={progressArc} vectorEffect="non-scaling-stroke"/>
+                <path className="gallery-progress-fill" d={progressArc} pathLength="1" vectorEffect="non-scaling-stroke"/>
+              </g>
+            </svg>
+          </div>
           <div className="gallery-navigation">
-            <div
-              className="gallery-progress"
-              role="progressbar"
-              aria-label="Gallery progress"
-              aria-valuemin={0}
-              aria-valuemax={projects.length}
-              aria-valuenow={active + 1}
-              style={{'--gallery-progress': `${(active + 1) / projects.length * 100}%`}}
-            />
+            {playLoader && loaderPhase !== 'done' && (
+              <GalleryLoader stage={stage} indicator={indicator} revealing={revealing} setPhase={setLoaderPhase}/>
+            )}
             <div className="gallery-controls">
               {projects.length > 1 && <button type="button" aria-label="Previous project" onClick={() => move(-1)}>←</button>}
               <ProjectLink className="gallery-current" to={`/work/${current.slug}/`} motion="open" aria-live="polite">{current.title}</ProjectLink>

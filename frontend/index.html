@@ -4,6 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0b0b">
+  <style>
+    html { background-color: #0b0b0b; }
+    html[data-gallery-boot="pending"] .showcase:has(.project-gallery[data-starting]) {
+      visibility: hidden;
+    }
+  </style>
+  <script>
+    if (location.pathname === '/' && matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+      const root = document.documentElement;
+      root.dataset.galleryBoot = 'pending';
+      // Reveal the static homepage if the application bundle fails or takes too long.
+      setTimeout(() => {
+        if (root.dataset.galleryBoot === 'pending') root.dataset.galleryBoot = 'expired';
+      }, 5000);
+    }
+  </script>
   <meta name="description" content="Momchil Todorov — senior WordPress and WooCommerce developer in Varna, Bulgaria.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Momchil Todorov — WordPress & WooCommerce Developer">

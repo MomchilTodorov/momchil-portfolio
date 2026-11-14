@@ -10,6 +10,7 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});
   }
   dom.window.scrollTo=()=>{};
+  dom.window.HTMLMediaElement.prototype.play=()=>Promise.resolve();
   const motionPreference=new dom.window.EventTarget();
   motionPreference.matches=false;
   dom.window.matchMedia=()=>motionPreference;
@@ -43,11 +44,13 @@ export async function checkUI({initialData,html,fetchPortfolio}){
   const application=(data,key='normal')=><BrowserRouter><PortfolioProvider key={key} initialData={data}><App/></PortfolioProvider></BrowserRouter>;
   async function settle(){await act(async()=>{await Promise.all(pending.splice(0));});}
   const click=async (element,detail=0)=>{assert.ok(element,'Expected a clickable element.');await act(async()=>element.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true,cancelable:true,button:0,detail})));await settle();};
+  const projectCount=initialData.projects.length;
+  const lastProject=initialData.projects.at(-1);
   try{
     await act(async()=>{reactRoot=hydrateRoot(document.getElementById('root'),application(initialData),{onRecoverableError:error=>errors.push(error.message)});});
     await settle();
-    assert.equal(document.querySelectorAll('.project-card').length,4);
-    assert.equal(document.querySelectorAll('.gallery-slide').length,4);
+    assert.equal(document.querySelectorAll('.project-card').length,projectCount);
+    assert.equal(document.querySelectorAll('.gallery-slide').length,projectCount);
     assert.ok(requests>0,'The standalone React app must fetch WordPress data.');
     assert.ok(document.body.textContent.includes('CMS EDIT IN REACT'));
     assert.equal(errors.length,0,'React hydration must match the prerendered HTML.');
@@ -72,9 +75,9 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     ));
     assert.equal(currentProject(),'LIGRE Coffee Equipment');
     await click(document.querySelector('.gallery-slide[data-position="-1"]'));
-    assert.equal(window.location.pathname,'/work/tzn/','An off-center card must open its own case study.');
+    assert.equal(window.location.pathname,lastProject.path,'An off-center card must open its own case study.');
     await click(document.querySelector('.back-link'));
-    assert.equal(currentProject(),'tzn Digital');
+    assert.equal(currentProject(),lastProject.title);
     await click(document.querySelector('.showcase-about'));
     assert.equal(document.querySelector('.about-dialog').open,true);
     const copiedEmails=[];
@@ -104,22 +107,26 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     await click([...document.querySelectorAll('.filter')].find(button=>button.textContent.startsWith('Front end')));
     assert.equal(document.querySelectorAll('.project-card').length,1);
     assert.ok(document.querySelector('.project-card').textContent.includes('tzn Digital'));
-    await click(document.querySelector('.project-card a'));
-    assert.equal(window.location.pathname,'/work/tzn/');
-    assert.equal(document.querySelector('h1').textContent,'tzn Digital');
-    assert.ok(document.title.includes('tzn Digital'));
+    await click([...document.querySelectorAll('.filter')].find(button=>button.textContent.startsWith('All')));
+    await click(document.querySelector(`.project-card a[href="${lastProject.path}"]`));
+    assert.equal(window.location.pathname,lastProject.path);
+    assert.equal(document.querySelector('h1').textContent,lastProject.title);
+    assert.ok(document.title.includes(lastProject.title));
     assert.equal(document.activeElement,document.getElementById('main'),'A case study navigation must focus the new main content.');
     await click(document.querySelector('.back-link'));
     assert.equal(window.location.pathname,'/');
-    assert.equal(document.querySelectorAll('.project-card').length,4);
-    assert.equal(currentProject(),'tzn Digital','Closing a case study must restore the selected slide.');
+    assert.equal(document.querySelectorAll('.project-card').length,projectCount);
+    assert.equal(currentProject(),lastProject.title,'Closing a case study must restore the selected slide.');
     assert.equal(document.querySelector('.about-dialog').open,false);
     assert.equal(document.activeElement,document.getElementById('main'),'Returning home must focus its main content.');
     const stage=document.querySelector('.gallery-stage');
     const centered=stage.querySelector('[data-position="0"]');
-    const pointer=(type,clientX,timeStamp)=>{
+    const galleryProgress=document.querySelector('.gallery-progress');
+    const readProgress=()=>Number(galleryProgress.style.getPropertyValue('--gallery-progress'));
+    const startingProgress=readProgress();
+    const pointer=(type,clientX,timeStamp,{pointerType='mouse',clientY=120}={})=>{
       const event=new dom.window.PointerEvent(type,{
-        bubbles:true,button:0,clientX,clientY:120,pointerId:1,pointerType:'mouse',isPrimary:true,
+        bubbles:true,button:0,clientX,clientY,pointerId:1,pointerType,isPrimary:true,
       });
       Object.defineProperty(event,'timeStamp',{value:timeStamp});
       return event;
@@ -153,15 +160,17 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     assert.equal(window.location.pathname,'/','Releasing a drag must not open a case study.');
     await finishTravel();
     const partialOffset=Number(centered.style.getPropertyValue('--arc-x'));
-    assert.ok(partialOffset<-.31&&partialOffset>-.34,'A short drag must settle at the dragged offset.');
-    assert.equal(currentProject(),'tzn Digital','The closest card must remain selected after a short drag.');
+    assert.ok(partialOffset<-.46&&partialOffset>-.49,'A short mouse drag must settle at the expected offset.');
+    assert.equal(currentProject(),lastProject.title,'The closest card must remain selected after a short drag.');
+    assert.ok(readProgress()>startingProgress && readProgress()<startingProgress+1/projectCount,
+      'A partial drag must advance progress by less than one card even when the selection stays the same.');
     await act(async()=>stage.dispatchEvent(new dom.window.WheelEvent('wheel',{bubbles:true,deltaX:100})));
     await finishTravel();
     const wheelOffset=Number(centered.style.getPropertyValue('--arc-x'));
     assert.ok(wheelOffset<-.65&&wheelOffset>-.95,'Wheel input must leave the carousel between cards.');
     assert.equal(currentProject(),'LIGRE Coffee Equipment');
     await click(galleryButton('Previous'));
-    assert.equal(currentProject(),'tzn Digital');
+    assert.equal(currentProject(),lastProject.title);
     await act(frame);
     assert.equal(stage.hasAttribute('data-moving'),true);
     await act(async()=>{
@@ -170,6 +179,23 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     });
     assert.equal(stage.hasAttribute('data-moving'),false,'Enabling reduced motion must end the color split immediately.');
     assert.equal(Number(centered.style.getPropertyValue('--arc-x')),0,'Enabling reduced motion must settle the active slide.');
+    Object.defineProperty(stage,'clientWidth',{configurable:true,value:390});
+    const beforeSwipe=readProgress();
+    const touch={pointerType:'touch'};
+    await act(async()=>{
+      centered.dispatchEvent(pointer('pointerdown',270,200,touch));
+      centered.dispatchEvent(pointer('pointermove',245,260,{...touch,clientY:148}));
+      centered.dispatchEvent(pointer('lostpointercapture',245,265,{...touch,clientY:148}));
+      stage.dispatchEvent(pointer('pointermove',158,300,{...touch,clientY:252}));
+      stage.dispatchEvent(pointer('pointerup',158,310,{...touch,clientY:252}));
+    });
+    const swipeProgress=(readProgress()-beforeSwipe+1)%1;
+    assert.ok(swipeProgress*projectCount>.96&&swipeProgress*projectCount<1.2,'A diagonal phone swipe must travel about one full slide.');
+    await click(centered,1);
+    assert.equal(window.location.pathname,'/','A touch swipe must not open a project.');
+    await click(galleryButton('Previous'));
+    assert.equal(currentProject(),lastProject.title,'The navigation can return to the initial project after a swipe.');
+    delete stage.clientWidth;
     const focusedProject=document.querySelector('.gallery-current');
     focusedProject.focus();
     const anchorErrors=[];
@@ -228,7 +254,7 @@ export async function checkUI({initialData,html,fetchPortfolio}){
     assert.equal(document.querySelector('h1').textContent,'Portfolio unavailable');
     fail=false;
     await click(document.querySelector('button'));
-    assert.equal(document.querySelectorAll('.project-card').length,4);
+    assert.equal(document.querySelectorAll('.project-card').length,projectCount);
     return {hydration:true,real_api_refresh:true,gallery_navigation:true,gallery_drag:true,about_panel:true,copy_email:true,filtering:true,case_navigation:true,route_focus:true,metadata:true,case_state_metadata:true,not_found:true,error_and_retry:true,requests};
   }finally{
     if(reactRoot)await act(async()=>reactRoot.unmount());

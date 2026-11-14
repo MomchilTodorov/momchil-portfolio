@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class Portfolio {
 	private const META = array( '_mt_client_url', '_mt_stack', '_mt_visual', '_mt_category_label' );
-	private const VISUALS = array( 'ligre', 'walhalla', 'elfbar', 'tzn', '' );
+	private const VISUALS = array( 'ligre', 'walhalla', 'elfbar', 'tzn', 'ptm', '' );
 
 	public static function boot() {
 		add_action( 'init', array( self::class, 'register_content' ) );
@@ -150,7 +150,7 @@ final class Portfolio {
 
 	public static function render_setup() {
 		if ( ! current_user_can( 'manage_options' ) ) return;
-		echo '<div class="wrap"><h1>Portfolio setup</h1><p>Import the four project case studies from Momchil’s supplied CV. Imported projects will be published. Existing project slugs are skipped; their content is never overwritten.</p>';
+		echo '<div class="wrap"><h1>Portfolio setup</h1><p>Import the portfolio’s case studies. Imported projects will be published. Existing project slugs are skipped; their content is never overwritten.</p>';
 		if ( isset( $_GET['imported'] ) ) printf( '<div class="notice notice-success"><p>Imported %d projects.</p></div>', absint( $_GET['imported'] ) );
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="mt_import_cv_projects">';
 		wp_nonce_field( 'mt_import_cv_projects' );

@@ -82,7 +82,6 @@ export function About({profile}) {
         <p>{profile.focusBio}</p>
         <div className="about-details">
           <div><span>Work</span><strong>{profile.role}</strong><p>{profile.employer}<br/>{profile.experienceStart}</p></div>
-          <div><span>Education</span><strong>{profile.education}</strong><p>{profile.university}</p></div>
         </div>
       </div>
     </section>
