@@ -42,7 +42,7 @@
     "categories": ["frontend", "integrations"],
     "summary": "Turning supplied designs into a responsive, interactive agency website.",
     "context": "The project combined responsive development with interactive elements, third-party services and consent-aware analytics.",
-    "contributions": ["Built the corporate WordPress site and responsive homepage from supplied designs.", "Delivered AJAX filters, GSAP animations, third-party widgets and video integrations.", "Implemented consent-aware GA4 and marketing scripts.", "Contributed to Core Web Vitals improvements."],
+    "contributions": ["Built the corporate WordPress site and responsive homepage from supplied designs.", "Contributed to the development of the agency’s WordPress plugin.", "Delivered AJAX filters, GSAP animations, third-party widgets and video integrations.", "Implemented consent-aware GA4 and marketing scripts.", "Contributed to Core Web Vitals improvements."],
     "outcome": "Delivered responsive pages and interactive functionality, with analytics scripts integrated around user consent.",
     "stack": ["WordPress", "PHP", "JavaScript", "AJAX", "GSAP", "GA4"],
     "url": "https://tzn-digital.com/"
