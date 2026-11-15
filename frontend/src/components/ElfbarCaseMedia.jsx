@@ -12,8 +12,12 @@ export default function ElfbarCaseMedia() {
         alt="The Elfbar storefront showing product categories and navigation."
         caption="Walkthrough of the storefront, product listings and bundle configurator."/>
       <figure>
-        <img src={`${mediaPath}/cart-drawer.webp`} width="1920" height="952" loading="lazy"
-          alt="Cart drawer open alongside a product page, with quantity controls and an order total."/>
+        <picture className="elfbar-cart">
+          <source media="(max-width: 720px)" srcSet={`${mediaPath}/cart-drawer-mobile.webp`}
+            width="558" height="1265"/>
+          <img src={`${mediaPath}/cart-drawer.webp`} width="2540" height="1265" loading="lazy"
+            alt="Open ELFBAR cart drawer with plus and minus quantity controls for two products."/>
+        </picture>
         <figcaption>Cart drawer with quantity controls, product recommendations and a discount code field.</figcaption>
       </figure>
       <figure>

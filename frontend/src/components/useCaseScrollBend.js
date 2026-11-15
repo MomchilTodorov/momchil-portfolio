@@ -2,7 +2,7 @@ import {useLayoutEffect} from 'react';
 import {reducedMotionQuery} from './ProjectLink.jsx';
 import {caseCamera, createCaseMediaProjection} from './caseMediaProjection.js';
 
-const mediaSelector = '.case-media, .case-walkthrough, .case-examples figure > img';
+const mediaSelector = '.case-media, .case-walkthrough, .case-examples figure > img, .case-examples figure > picture > img';
 const scrollEasing = .085;
 const wheelSpeed = 1.2;
 
@@ -121,7 +121,8 @@ export default function useCaseScrollBend(column, canvas, projectSlug) {
     }
 
     function onPointerDown(event) {
-      if (gesture || !event.isPrimary || event.button !== 0
+      // Let the browser own touch scrolling, including when its toolbar resizes the viewport.
+      if (event.pointerType === 'touch' || gesture || !event.isPrimary || event.button !== 0
         || event.target.closest('a, button') || !hasMotion()) return;
       gesture = {id: event.pointerId, start: event.clientY, target, active: false};
     }
@@ -136,8 +137,7 @@ export default function useCaseScrollBend(column, canvas, projectSlug) {
         gesture.active = true;
       }
       const camera = caseCamera(surface.clientWidth, surface.clientHeight);
-      const sensitivity = event.pointerType === 'touch' ? 3 : 1.5;
-      scrollTo(gesture.target + distance * sensitivity * camera.scale);
+      scrollTo(gesture.target + distance * 1.5 * camera.scale);
     }
 
     function endGesture(event) {

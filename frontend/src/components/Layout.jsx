@@ -49,7 +49,7 @@ export function Header({profile, projects}) {
         <div className="about-sheet">
           <div className="about-bar">
             <h2 id="about-dialog-title">About</h2>
-            <button type="button" onClick={() => panel.current.close()}>Close <span aria-hidden="true">×</span></button>
+            <button type="button" onClick={() => panel.current.close()}>Close</button>
           </div>
           <div className="about-scroll">
             <About profile={profile}/>

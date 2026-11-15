@@ -75,6 +75,7 @@ function ProjectPage(){
         <div className="case-transition-backdrop" aria-hidden="true"/>
         <header className="case-header">
           <div className="case-metadata">
+            <h1 className="case-mobile-title">{project.title}</h1>
             <p className="case-category">{category}</p>
             {specialties.map(specialty=><p className="case-specialty" key={specialty}>{specialty}</p>)}
             <p className="case-agency"><span>Agency:</span> tzn digital ventures</p>
