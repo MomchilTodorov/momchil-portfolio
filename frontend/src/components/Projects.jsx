@@ -151,6 +151,7 @@ export function ProjectGallery({projects, initialProject, playLoader, rememberSe
               );
             })}
           </div>
+          <canvas className="gallery-projection" aria-hidden="true"/>
           <div
             className="gallery-progress"
             ref={indicator}

@@ -54,13 +54,32 @@
 }
 
 .gallery-stage {
+  --gallery-perspective: max(435px, 120.71svh);
   position: absolute;
   inset: 0;
   touch-action: pinch-zoom;
-  perspective: max(435px, 120.71svh);
-  transform: rotateX(var(--camera-pitch, 0deg)) rotateY(var(--camera-yaw, 0deg));
+  perspective: var(--gallery-perspective);
+  transform: perspective(var(--gallery-perspective))
+    translate(var(--camera-x, 0px), var(--camera-y, 0px))
+    rotateX(var(--camera-pitch, 0deg))
+    rotateY(calc(-1 * var(--camera-yaw, 0deg)));
 }
 .gallery-filters { position: absolute; pointer-events: none; }
+.gallery-projection {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  pointer-events: none;
+}
+[data-gallery-projected] > .gallery-projection { visibility: visible; }
+[data-gallery-projected] .gallery-slide[data-gallery-drawn] .gallery-surface { opacity: 0; }
+[data-gallery-projected] .gallery-slide { cursor: inherit; }
+[data-gallery-hover] .gallery-stage { cursor: pointer; }
+:root[data-project-motion] .gallery-projection { visibility: hidden; }
+:root[data-project-motion] .gallery-slide[data-gallery-drawn] .gallery-surface { opacity: 1; }
 .gallery-stage[data-dragging],
 .gallery-stage[data-dragging] .gallery-slide { cursor: grabbing; }
 .gallery-slide {
@@ -145,6 +164,7 @@
 .project-cover img { width: 100%; height: 100%; object-fit: cover; }
 .autoplay-video { position: absolute; inset: 0; pointer-events: none; }
 .autoplay-video video { width: 100%; height: 100%; object-fit: cover; }
+.gallery-slide[href="/work/ptm/"] .project-cover :is(img, video) { object-fit: contain; }
 .project-cover:has(.project-cover-title)::after {
   position: absolute;
   inset: 0;

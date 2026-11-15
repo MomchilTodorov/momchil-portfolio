@@ -1,5 +1,6 @@
 import {useLayoutEffect, useRef, useState} from 'react';
 import {prefersReducedMotion, reducedMotionQuery} from './ProjectLink.jsx';
+import {createGalleryProjection} from './galleryProjection.js';
 
 const frameLength = 1000 / 60;
 const travelEasing = .085;
@@ -26,7 +27,7 @@ export default function useGalleryMotion(projects, initialProject, waitingForLoa
   const stage = useRef(null);
   const motion = useRef({
     position: 0, target: 0, speed: 0, frame: 0, activeIndex: 0, followPosition: false,
-    pointer: null, touchTravel: false, blockClickUntil: 0, cameraX: 0, cameraY: 0, cursorX: 0, cursorY: 0,
+    pointer: null, hover: false, touchTravel: false, blockClickUntil: 0, cameraX: 0, cameraY: 0, cursorX: 0, cursorY: 0,
     shift: 0, stretch: 0,
     entrance: 1, entranceStarted: null, hasShownGallery: false,
   });
@@ -101,8 +102,10 @@ export default function useGalleryMotion(projects, initialProject, waitingForLoa
     if (cameraX !== scene.cameraX || cameraY !== scene.cameraY) {
       scene.cameraX = cameraX;
       scene.cameraY = cameraY;
-      element.style.setProperty('--camera-yaw', `${cameraX * 1.7}deg`);
-      element.style.setProperty('--camera-pitch', `${cameraY * -1.35}deg`);
+      element.style.setProperty('--camera-x', `${cameraX * .45}vw`);
+      element.style.setProperty('--camera-y', `${cameraY * .5}svh`);
+      element.style.setProperty('--camera-yaw', `${cameraX * 2.45}deg`);
+      element.style.setProperty('--camera-pitch', `${cameraY * 2.5}deg`);
       element.style.setProperty('--light-x', `${50 - cameraX * 28}%`);
       element.style.setProperty('--light-y', `${42 - cameraY * 22}%`);
     }
@@ -115,6 +118,8 @@ export default function useGalleryMotion(projects, initialProject, waitingForLoa
     scene.speed = 0;
     scene.entrance = 1;
     scene.position = scene.target;
+    scene.projection?.hide();
+    scene.hover = false;
     scene.cursorX = scene.cursorY = 0;
     paintCarousel();
     paintSpeed();
@@ -149,7 +154,14 @@ export default function useGalleryMotion(projects, initialProject, waitingForLoa
       if (scene.position !== position || scene.entrance !== entrance) paintCarousel();
       paintSpeed();
       const pointerMoving = paintPointer(pointerEasing);
-      scene.frame = pointerMoving || scene.position !== scene.target || scene.speed || scene.entrance < 1
+      const element = stage.current;
+      const projectedMotion = scene.projection && !document.hidden && !document.querySelector('.about-dialog[open]') && scene.projection.frame({
+        width: element.clientWidth, height: element.clientHeight,
+        pointer: {x: scene.cursorX, y: scene.cursorY, hover: scene.hover && !scene.pointer?.dragging},
+        velocity: scene.speed, entrance: scene.entrance,
+        offset: index => galleryOffset(index, scene.position, count),
+      });
+      scene.frame = pointerMoving || projectedMotion || scene.position !== scene.target || scene.speed || scene.entrance < 1
         ? requestAnimationFrame(tick) : 0;
     }
     scene.frame = requestAnimationFrame(tick);
@@ -181,14 +193,71 @@ export default function useGalleryMotion(projects, initialProject, waitingForLoa
       if (playEntrance) animate();
     }
     const preference = window.matchMedia?.(reducedMotionQuery);
+    const mouseLayout = window.matchMedia?.('(hover: hover) and (pointer: fine)');
+    const projectionCanvas = element?.parentElement.querySelector('.gallery-projection');
+    function refreshProjection() {
+      if (!projectionCanvas || waitingForLoader || preference?.matches || !mouseLayout?.matches) {
+        scene.projection?.dispose();
+        scene.projection = null;
+        return;
+      }
+      scene.projection ??= createGalleryProjection(projectionCanvas, scene.slides);
+      if (scene.projection) animate();
+    }
     const onPreferenceChange = () => {
       if (preference.matches && element) finishMotion();
+      refreshProjection();
     };
+    function followPointer(event) {
+      if (event.pointerType !== 'mouse' || scene.pointer || preference?.matches) return;
+      const {x, y} = pointerPosition(element, event);
+      scene.hover = true;
+      scene.cursorX = x;
+      scene.cursorY = y;
+      animate();
+    }
+    function leaveWindow(event) {
+      if (event.pointerType !== 'mouse' || event.relatedTarget || scene.pointer) return;
+      scene.hover = false;
+      scene.cursorX = scene.cursorY = 0;
+      animate();
+    }
+    function repaintProjection() {
+      if (scene.projection && !document.hidden) animate();
+    }
+    function restoreProjection() {
+      scene.projection?.dispose();
+      scene.projection = null;
+      refreshProjection();
+    }
     preference?.addEventListener?.('change', onPreferenceChange);
+    mouseLayout?.addEventListener?.('change', refreshProjection);
+    if (element) {
+      window.addEventListener('pointermove', followPointer);
+      window.addEventListener('pointerout', leaveWindow);
+      window.addEventListener('resize', repaintProjection);
+      document.addEventListener('visibilitychange', repaintProjection);
+      document.addEventListener('close', repaintProjection, true);
+      element.addEventListener('load', repaintProjection, true);
+      element.addEventListener('loadeddata', repaintProjection, true);
+      projectionCanvas?.addEventListener('webglcontextrestored', restoreProjection);
+      refreshProjection();
+    }
     return () => {
       preference?.removeEventListener?.('change', onPreferenceChange);
+      mouseLayout?.removeEventListener?.('change', refreshProjection);
+      window.removeEventListener('pointermove', followPointer);
+      window.removeEventListener('pointerout', leaveWindow);
+      window.removeEventListener('resize', repaintProjection);
+      document.removeEventListener('visibilitychange', repaintProjection);
+      document.removeEventListener('close', repaintProjection, true);
+      element?.removeEventListener('load', repaintProjection, true);
+      element?.removeEventListener('loadeddata', repaintProjection, true);
+      projectionCanvas?.removeEventListener('webglcontextrestored', restoreProjection);
       cancelAnimationFrame(scene.frame);
       scene.frame = 0;
+      scene.projection?.dispose();
+      scene.projection = null;
     };
   }, [projectOrder, initialProject, waitingForLoader]);
 
@@ -233,15 +302,7 @@ export default function useGalleryMotion(projects, initialProject, waitingForLoa
   function onPointerMove(event) {
     const element = event.currentTarget;
     const pointer = scene.pointer;
-    if (!pointer) {
-      if (event.pointerType !== 'mouse' || prefersReducedMotion()) return;
-      const bounds = element.parentElement.getBoundingClientRect();
-      scene.cursorX = clamp((event.clientX - bounds.left) / (bounds.width || 1) * 2 - 1, -1, 1);
-      scene.cursorY = clamp((event.clientY - bounds.top) / (bounds.height || 1) * 2 - 1, -1, 1);
-      animate();
-      return;
-    }
-    if (pointer.id !== event.pointerId) return;
+    if (!pointer || pointer.id !== event.pointerId) return;
     const dx = event.clientX - pointer.x;
     if (!pointer.dragging) {
       const horizontal = Math.abs(dx);
@@ -266,8 +327,6 @@ export default function useGalleryMotion(projects, initialProject, waitingForLoa
 
   function onPointerLeave() {
     if (!scene.pointer?.dragging) scene.pointer = null;
-    scene.cursorX = scene.cursorY = 0;
-    animate();
   }
 
   function onLostPointerCapture(event) {
@@ -275,11 +334,32 @@ export default function useGalleryMotion(projects, initialProject, waitingForLoa
     if (event.target === event.currentTarget) endPointer(event);
   }
 
+  function onProjectedClick(event) {
+    if (!scene.projection || event.detail === 0 || event.button !== 0 || event.ctrlKey
+      || event.shiftKey || event.metaKey || event.altKey) return;
+    const {x, y} = pointerPosition(event.currentTarget, event);
+    const picked = scene.projection.pick(x, y);
+    const link = event.target.closest('.gallery-slide');
+    if (picked === null || (picked < 0 && link && !link.hasAttribute('data-gallery-drawn'))) return;
+    if (picked >= 0 && link === scene.slides[picked]) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (picked >= 0 && performance.now() >= scene.blockClickUntil) scene.slides[picked]?.click();
+  }
+
   return {
-    active, stage, move, onWheel, onPointerDown, onPointerMove, onPointerLeave,
+    active, stage, move, onWheel, onPointerDown, onPointerMove, onPointerLeave, onClickCapture: onProjectedClick,
     onPointerUp: endPointer,
     onPointerCancel: endPointer,
     onLostPointerCapture,
     blocksClick: () => performance.now() < scene.blockClickUntil,
+  };
+}
+
+function pointerPosition(stage, event) {
+  const bounds = stage.parentElement.getBoundingClientRect();
+  return {
+    x: clamp((event.clientX - bounds.left) / (bounds.width || 1) * 2 - 1, -1, 1),
+    y: clamp((event.clientY - bounds.top) / (bounds.height || 1) * 2 - 1, -1, 1),
   };
 }
